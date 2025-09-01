@@ -36,7 +36,7 @@
 ---
 
 ### Методические указания
-- Методические указания по верстке и дизайну Figma arabic Figma. Видеоуроки по Figma
+- [Методические указания](https://github.com/iu5git/Web/blob/main/tutorials/lab1-design/README.md) по верстке и дизайну Figma [arabic Figma](https://github.com/iu5git/Web/blob/main/tutorials/lab1-design/arabic.md). [Видеоуроки](https://www.youtube.com/watch?v=DWicd2qo2pk) по Figma
 - Инструкция по работе c Python
 - Методические указания Django / arabic Django
 - Методические указания Golang
