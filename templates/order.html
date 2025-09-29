@@ -1,0 +1,70 @@
+<html lang="ru">
+
+<head>
+    <title>Карточка</title>
+    <link rel="stylesheet" href="/static/styles/order_style.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="footer-spacer"></div>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="/" style="text-decoration: none; color: white;">
+                    <span style="font-size: 32px;">Устройства для BMW</span>
+                </a>
+                <a href="/">
+                    <img src="http://localhost:9000/lab1/img/icon-logo.f2ce70f.svg" class="logo-small-image">
+                </a>
+            </div>
+            
+            <div class="header-actions">
+
+            </div>
+        </div>
+    </header>
+  
+    <div class="container">
+        <div class="product-detail-container">
+            <div class="product-image-section">
+                <div class="img-container">
+                    <img src="http://localhost:9000/lab1/img/{{ .device.Device_ID }}.jpg" alt="{{ .device.Name }}" 
+                         class="product-image-large" 
+                         style="width:412px; height:259px; object-fit:contain;">
+                </div>
+            </div>
+            
+            
+            <div class="product-info-section">
+                <h1 class="product-title">{{ .device.Name }}</h1>
+                
+                <div class="divider"></div>
+                <div class="availability">В наличии</div>
+                <div class="product-power">Мощность: {{ .device.PowerNominal}}</div> 
+                
+                <div class="specifications">
+                    {{ range .specsArray }}
+                        <div>{{ . }}</div>
+                    {{ end }}
+                </div>
+                <div class="divider"></div>
+                <div class="action-buttons">
+                    
+                  <!-- <a href="/hello" class="back-btn">
+                        Назад
+                    </a> -->
+                </div>
+            </div>
+        </div>
+        
+       
+      
+        <div class="description">
+            <h2 style="font-size: 24px;">Описание</h2>
+            <div class="divider"></div>  
+            <p style="font-weight: 300; color: #000;">{{ .device.Description }}</p>
+        </div>
+    </div>
+</body>
+</html>

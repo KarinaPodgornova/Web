@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:12
+    container_name: postgres_car
+    volumes:
+      - type: volume
+        source: postgresdb-data
+        target: /var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: car_user
+      POSTGRES_DB: car_devices
+      POSTGRES_PASSWORD: car_password
+    networks:
+      - car-network
+
+  minio:
+    container_name: minio_car
+    image: minio/minio:latest
+    ports:
+      - "9002:9000"    # ← изменили на 9002
+      - "9003:9001"    # ← изменили на 9003
+    environment:
+      MINIO_ACCESS_KEY: car_user
+      MINIO_SECRET_KEY: car_password
+      MINIO_CONSOLE_ADDRESS: ":9001"
+    volumes:
+      - minio-data:/data
+    command: server /data
+    networks:
+      - car-network
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis_car
+    restart: always
+    ports:
+      - '6380:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass car_password
+    volumes:
+      - redis-data:/data
+    networks:
+      - car-network
+
+  adminer:
+    image: adminer:4
+    container_name: adminer_car
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres_car
+    depends_on:
+      - db
+    networks:
+      - car-network
+
+volumes:
+  postgresdb-data:
+    driver: local
+  minio-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  car-network:
+    driver: bridge
