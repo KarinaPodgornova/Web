@@ -33,7 +33,6 @@ type Cart struct {
 }
 
 func (r *Repository) GetOrders() ([]Order, error) {
-    // Реальные товары BMW - ВСЕ 10 штук!
     orders := []Order{
 		{
             ID: 1, 

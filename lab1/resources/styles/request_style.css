@@ -15,7 +15,7 @@
             
         }
         
-        /* Header стили */
+     
         .footer-spacer { 
             height: 20px; 
             background-color: #f6f6f6; 
@@ -139,7 +139,7 @@
         .container {
             max-width: 1200px;
             margin: 30px auto;
-            padding: 40px;
+            padding: 20px;
             background: #f6f6f6;
             
         }
@@ -237,7 +237,7 @@
         .calculator {
             background: #f6f6f6;
             padding: 30px;
-            
+            position: relative;
             margin-bottom: 30px;
         }
         
@@ -268,12 +268,15 @@
             gap: 20px;
         }
         .bottom-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 20px 0;
-    gap: 20px;
-}
+            display: flex;
+            justify-content: flex-end; /* Выравниваем по правому краю */
+            align-items: center;
+            margin: 20px 0;
+            gap: 20px;
+            width: 100%; /* Добавляем ширину 100% */
+        }
+        
+        
         .calculator-main-title {
             color: #1854CD;
             font-size: 24px;
@@ -330,23 +333,21 @@
         }
 
         .total-current-container {
-    display: flex;
-    justify-content: flex-end;
-}
+            display: flex;
+            justify-content: flex-end;
+            width: auto; /* Меняем на auto вместо 100% */
+        }
 
 
-.total-current {
-    font-size: 18px;
-    font-weight: bold;
-    color: #1854CD;
-margin-right: -20px;
-    padding: 15px 25px;
- 
-   
-    min-width: 300px;
-    text-align: center;
-}
-
+        .total-current {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1854CD;
+            padding: 15px 25px;
+            min-width: 300px;
+            text-align: center;
+            /* Убираем margin-left: auto */
+        }
         
         .input-field {
             width: 70px;
@@ -458,3 +459,68 @@ margin-right: -20px;
     margin-left: 0;
 }
 
+
+
+
+
+/* Стили для блока параметров как на скрине */
+.calculator-params {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Изменил на 2 колонки вместо 3 */
+    gap: 30px;
+    margin-bottom: 40px;
+    padding: 25px;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.params-section h3,
+.results-section h3 {
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.param-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.param-row label {
+    min-width: 300px;
+    font-weight: 600;
+    color: #333;
+}
+
+.param-input {
+    width: 100px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    background-color: #f6f6f6;
+    font-size: 14px;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.result-value {
+    font-weight: 700;
+    color: #1854CD;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .calculator-params {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}

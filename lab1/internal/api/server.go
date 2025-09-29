@@ -6,9 +6,7 @@ import (
     "log"
     "lab1/internal/app/handler"
     "lab1/internal/app/repository"
-    "html/template" // Добавить этот импорт
-    "strings"       // Добавить этот импорт
-    "strconv"       // Добавить этот импорт
+         // Добавить этот импорт
 )
 
 func StartServer() {
@@ -23,25 +21,12 @@ func StartServer() {
 
     r := gin.Default()
     
-    // Добавляем функции для шаблонов ПЕРЕД LoadHTMLGlob
-    r.SetFuncMap(template.FuncMap{
-        "split": strings.Split,
-        "replace": strings.ReplaceAll,
-        "atoi": func(s string) int {
-            i, _ := strconv.Atoi(s)
-            return i
-        },
-        "add": func(a, b int) int {
-            return a + b
-        },
-    })
-
+   
     // добавляем наш html/шаблон
     r.LoadHTMLGlob("templates/*")
-
     r.Static("/static", "./resources")
 
-    r.GET("/hello", handler.GetOrders)
+    r.GET("/", handler.GetOrders)
     r.GET("/order/:id", handler.GetOrder)
     r.GET("/request", handler.GetRequest)
 

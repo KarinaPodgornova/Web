@@ -23,10 +23,8 @@ func NewHandler(r *repository.Repository) *Handler {
 func (h *Handler) GetOrders(ctx *gin.Context) {
     var orders []repository.Order
     var err error
-
     // Получаем поисковый запрос
     searchQuery := ctx.Query("query")
-    
     if searchQuery == "" {
         // Если запроса нет - показываем все товары
         orders, err = h.Repository.GetOrders()
@@ -43,7 +41,7 @@ func (h *Handler) GetOrders(ctx *gin.Context) {
 
     ctx.HTML(http.StatusOK, "index.html", gin.H{
         "time":      time.Now().Format("15:04:05"),
-        "orders":    orders, // Просто массив, а не map
+        "orders":    orders, 
         "cartCount": 2,
         "query":     searchQuery,
     })
@@ -70,6 +68,7 @@ func (h *Handler) GetOrder(ctx *gin.Context) {
   })
 }
 
+
 func (h *Handler) GetRequest(ctx *gin.Context) {
   // Получаем все товары
   orders, err := h.Repository.GetOrders()
@@ -91,7 +90,7 @@ func (h *Handler) GetRequest(ctx *gin.Context) {
   }
 
   ctx.HTML(http.StatusOK, "request.html", gin.H{
-    "cartItems": cartItemsMap, // Теперь это map
+    "cartItems": cartItemsMap, 
     "cartCount": len(cartItemsMap),
   })
 }
@@ -102,8 +101,7 @@ func (h *Handler) GetCart(ctx *gin.Context) {
   if err != nil {
     logrus.Error(err)
   }
-  
-  // Преобразуем массив в словарь для корзины
+ 
   cartItemsMap := make(map[int]repository.Order)
   // Берем первые 2 товара
   if len(orders) >= 2 {
@@ -117,7 +115,8 @@ func (h *Handler) GetCart(ctx *gin.Context) {
   }
 
   ctx.HTML(http.StatusOK, "request.html", gin.H{
-    "cartItems": cartItemsMap, // Теперь это map
+    "cartItems": cartItemsMap, 
     "cartCount": len(cartItemsMap),
   })
 }
+
