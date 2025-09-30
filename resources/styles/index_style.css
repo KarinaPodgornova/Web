@@ -144,50 +144,71 @@ header {
 
 
 
-.product-content { 
-    display: flex; 
-    flex-direction: column; 
-    flex-grow: 1; 
+.product-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between; 
 }
+
+.product-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto; 
+    align-items: center; 
+}
+
+
 
 .product-title { 
     font-weight: 400; 
     font-size: 11px; 
-    margin-bottom: 5px; 
+    margin-bottom: 0px; 
     color: #767676; 
     flex-grow: 1; 
     text-align: center; 
 }
 
-.add-to-cart { 
-    background-color: #1854CD; 
-    color: white; 
-    border: none; 
-    padding: 10px 15px; 
-    border-radius: 0px; 
-    cursor: pointer; 
-    font-weight: 600; 
-    transition: background-color 0.3s ease; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 8px; 
+.add-to-cart {
+    background-color: #1854CD;
+    color: white;
+    border: none;
+    padding: 12px 15px;
+    border-radius: 0px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     text-decoration: none;
-    margin-bottom: 10px; 
-    margin-top: 5px;
+    margin-bottom: 0;
+    margin-top: 0;
+    width: 200px; 
+    font-size: 14px;
 }
 .add-to-cart:hover{
     background: #1342a8;
 }
 .more {
     background-color: #f6f6f6;
-    color: #1854CD; 
+    color: #1854CD;
     text-align: center;
     text-decoration: none;
+    padding: 10px 15px;
+    border: 1px solid #1854CD;
+    width: 200px; 
+    display: block;
+    font-size: 14px;
+    transition: all 0.3s ease;
 }
+
 
 .more:hover{
     text-decoration: underline;
+    color: #022162;
 }
 
 .copyright { 
@@ -332,7 +353,7 @@ header {
     color: #000; 
     cursor: pointer; 
     font-weight: 700; 
-    margin-bottom: 5px; 
+    margin-bottom: 15px; 
     display: block; 
     text-align: center;
 }
@@ -378,3 +399,53 @@ header {
     align-items: center;
 }
 
+
+
+
+
+
+    .cart-count {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #1854CD;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .app-button {
+        position: fixed;
+        left: 60px;
+        bottom: 40px;
+        z-index: 1000;
+        width: 130px;
+        height: 130px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cart-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #1854CD;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/styles/request_style.css">
+    <link rel="stylesheet" href="/styles/request_style.css">
     <title>Корзина - BMW</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -26,7 +26,7 @@
     <div class="container">
         <div class="calculator">
            
-            <!-- ЗАГОЛОВОК И ОБЩИЕ ПАРАМЕТРЫ - ПЕРЕД ВСЕМИ БЛОКАМИ -->
+
             <div class="calculator-header">
                 <h2 class="calculator-main-title" style="font-weight: 300;">КАЛЬКУЛЯТОР</h2>
                 <div class="calculator-controls">
@@ -41,7 +41,7 @@
                 </div>
             </div>
 
-            <!-- БЛОК ПАРАМЕТРОВ РАСЧЕТА -->
+            
     <div class="calculator-params">
         <div class="params-section">
             <h3>Дополнительные параметры</h3>
@@ -77,7 +77,7 @@
         </div>
     </div>
 
-            <!-- ТАБЛИЦА С УСТРОЙСТВАМИ -->
+         
             <table class="calculator-table" style="border-bottom: 2px solid #e0e0e0;">
                 <thead>
                     <tr>
@@ -85,6 +85,7 @@
                         <th style="color: #bababa;">Количество</th>
                         <th style="color: #bababa;">Введите сопротивление:</th>
                         <th style="color: #bababa;">Необходимая сила тока:</th>
+                        <th style="color: #bababa;">Действие</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,11 +94,11 @@
                         <td>
                             <div class="product-cell">
                                 <div class="product-image">
-                                    <img src="http://localhost:9000/lab1/img/{{$item.ID}}.jpg" alt="{{$item.Title}}">
+                                    <img src="http://localhost:9000/lab1/img/{{.Device.Device_ID}}.jpg" alt="{{.Device.Name}}">
                                 </div>
                                 <div class="product-info">
-                                    <div class="product-title" style="font-weight: 300;">{{$item.Title}}</div>
-                                    <div class="product-power">Мощность: {{$item.Power}}</div>
+                                    <div class="product-title" style="font-weight: 300;">{{.Device.Name}}</div>
+                                    <div class="product-power">Мощность: {{.Device.PowerNominal}}</div>
                                 </div>
                             </div>
                         </td>
@@ -112,19 +113,28 @@
                             <input type="number" class="resistance-input" placeholder="Ом" value="5">
                         </td>
                         <td class="current-result">1.4 А</td>
+                        <td>
+                            <form method="POST" action="/application/delete">
+                                <input type="hidden" name="device_id" value="{{.Device.ID}}">
+                                <button type="submit" style="background: none; border: none; cursor: pointer;">
+                                    <img src="/static/img/trash.svg" style="height: 50px; width: 50px;" alt="Удалить">
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     {{end}}
                 </tbody>
             </table>
             
-         <!--   <div class="bottom-controls">
-                <div class="total-current-container">
-                    <div class="total-current" style="margin-left: auto;">
-                        <strong>Необходимая сила тока:</strong> 110.5 А
-                    </div>
-                </div>
+           
+            <div class="row" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; margin-top: 30px">
+                <form method="POST" action="/application/delete">
+                    <input type="hidden" name="application_id" value="{{.Application_ID}}">
+                    <button type="submit" class="delete-application-button">
+                        Удалить заявку
+                    </button>
+                </form>
             </div>
-            -->
         </div>
     </div>
 </body>

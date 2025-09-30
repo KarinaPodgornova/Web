@@ -8,4 +8,6 @@ type ApplicationDevices struct {
     Amount          int     `json:"amount"`
     Notes           string  `gorm:"type:varchar(255)" json:"notes"`
     Amperage        float64 `gorm:"type:numeric(10,3)" json:"amperage"`
+	
+
 }
