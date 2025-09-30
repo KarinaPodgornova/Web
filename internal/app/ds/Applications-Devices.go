@@ -9,5 +9,6 @@ type ApplicationDevices struct {
     Notes           string  `gorm:"type:varchar(255)" json:"notes"`
     Amperage        float64 `gorm:"type:numeric(10,3)" json:"amperage"`
 	
-
+    Device 			Device 		`gorm:"foreignKey:Device_ID;references:Device_ID"`
+	Application 	Application `gorm:"foreignKey:Application_ID;references:Application_ID"`
 }

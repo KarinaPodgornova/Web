@@ -269,11 +269,11 @@
         }
         .bottom-controls {
             display: flex;
-            justify-content: flex-end; /* Выравниваем по правому краю */
+            justify-content: flex-end; 
             align-items: center;
             margin: 20px 0;
             gap: 20px;
-            width: 100%; /* Добавляем ширину 100% */
+            width: 100%; 
         }
         
         
@@ -335,7 +335,7 @@
         .total-current-container {
             display: flex;
             justify-content: flex-end;
-            width: auto; /* Меняем на auto вместо 100% */
+            width: auto; 
         }
 
 
@@ -462,11 +462,9 @@
 
 
 
-
-/* Стили для блока параметров как на скрине */
 .calculator-params {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Изменил на 2 колонки вместо 3 */
+    grid-template-columns: 1fr 1fr; 
     gap: 30px;
     margin-bottom: 40px;
     padding: 25px;
@@ -517,10 +515,15 @@
     color: #1854CD;
 }
 
-/* Адаптивность для мобильных */
-@media (max-width: 768px) {
-    .calculator-params {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
+
+
+
+.delete-application-button{
+    background: #1854CD;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
 }

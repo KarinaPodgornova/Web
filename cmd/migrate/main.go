@@ -15,7 +15,7 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	// Migrate the schema
+	
 	err = db.AutoMigrate(
 		&ds.Users{},
 		&ds.Device{},

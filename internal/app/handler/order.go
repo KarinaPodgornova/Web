@@ -77,7 +77,7 @@ func (h *Handler) GetApplication(ctx *gin.Context) {
 	}
 
     ctx.HTML(http.StatusOK, "request.html", gin.H{
-        "cartItems": applicationItems,
+        "application": applicationItems,
 		"Application_ID": id,
     })
 }
