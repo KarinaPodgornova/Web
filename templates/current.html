@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/styles/request_style.css">
+    <link rel="stylesheet" href="/styles/current_style.css">
     <title>Корзина - BMW</title>
     
 </head>
@@ -90,13 +90,14 @@
                         <th style="color: #bababa;">Устройство</th>
                         <th style="color: #bababa;">Количество</th>
                       <!--  <th style="color: #bababa;">Введите сопротивление:</th>-->
+                        
+                        <th style="color: #bababa;">КПД</th>
                         <th style="color: #bababa;">Необходимая сила тока:</th>
-                        <th style="color: #bababa;">Действие</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{if .application}}
-                        {{ range .application }}
+                    {{if .current}}
+                        {{ range .current }}
                         <tr style="border-bottom: 2px solid #e0e0e0;">
                             <td>
                                 <div class="product-cell">
@@ -117,11 +118,11 @@
                                 </div>
                             </td>
                             <td>
-                                <input type="number" class="resistance-input" placeholder="Ом" value="5">
+                                <input type="number" class="resistance-input" placeholder="Ом" value="0.7">
                             </td>
                             <td class="current-result">1.4 А</td>
                             <td>
-                                <form method="POST" action="/application/delete">
+                                <form method="POST" action="/current/delete">
                                     <input type="hidden" name="device_id" value="{{.Device.Device_ID}}">
                                     
                                 </form>
@@ -140,9 +141,9 @@
             
            
             <div class = "row" style = "display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; margin-top: 30px">
-                <form method="POST" action="/application/delete">
-                    <input type="hidden" name="application_id" value="{{ .Application_ID}}">
-                    <button class="delete-application-button">
+                <form method="POST" action="/current/delete">
+                    <input type="hidden" name="current_id" value="{{ .Current_ID}}">
+                    <button class="delete-current-button">
                         Удалить заявку
                     </button>
                 </form>

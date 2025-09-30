@@ -30,7 +30,7 @@
             <p style="margin-bottom: -20px;">ВЫБЕРИТЕ УСТРОЙСТВО</p>
             <img src="http://localhost:9000/lab1/img/logo-big.jpg" alt="BMW Logo">
             <form action="/" method="GET" class="search-container" style="position: absolute; bottom: 30px; left: 20px; margin-left: 400px; width: 600px;">
-                <input type="text" name="query" placeholder="Поиск по названию..." class="search-field" value="{{ .query }}">
+                <input type="text" name="device_query" placeholder="Поиск по названию..." class="search-field" value="{{ .device_query }}">
                 <button type="submit" class="search-button"><i class="fas fa-search"></i></button>
             </form>
         </div>
@@ -49,7 +49,7 @@
                         </div>
                         
                         <div class="product-actions">
-                            <form method="POST" action="/application/add">
+                            <form method="POST" action="/current/add">
                                 <input type="hidden" name="device_id" value="{{ .Device_ID }}">
                                 <button type="submit" class="add-to-cart">Добавить</button>
                             </form>
@@ -60,10 +60,10 @@
                 {{ end }}
             </div>
 
-            <a href="/application/{{ .Application_ID }}" class="app-button">
+            <a href="/current/{{ .Current_ID }}" class="app-button">
                 <i class="fas fa-wrench fa-4x" style="color: black;"></i>
-                {{ if ne .application_count 0 }}
-                <span class="cart-badge">{{ .application_count }}</span>
+                {{ if ne .current_count 0 }}
+                <span class="cart-badge">{{ .current_count }}</span>
                 {{ end }}
             </a>
         </div>    

@@ -1,11 +1,12 @@
 package main
 
 import (
+	"lab2/internal/app/ds"
+	"lab2/internal/app/dsn"
+
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"lab2/internal/app/ds"
-	"lab2/internal/app/dsn"
 )
 
 func main() {
@@ -15,12 +16,11 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	
 	err = db.AutoMigrate(
-		&ds.Users{},
-		&ds.Device{},
-		&ds.Application{},
-		&ds.ApplicationDevices{},
+		//&ds.Users{},
+		//&ds.Device{},
+		//&ds.Current{},
+		&ds.CurrentDevices{},
 	)
 	if err != nil {
 		panic("cant migrate db")

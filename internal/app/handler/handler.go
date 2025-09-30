@@ -1,37 +1,36 @@
 package handler
 
 import (
-  "github.com/gin-gonic/gin"
-  "github.com/sirupsen/logrus"
-  "lab2/internal/app/repository"
+	"lab2/internal/app/repository"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type Handler struct {
-  Repository *repository.Repository
+	Repository *repository.Repository
 }
 
 func NewHandler(r *repository.Repository) *Handler {
-  return &Handler{
-    Repository: r,
-  }
+	return &Handler{
+		Repository: r,
+	}
 }
 
 // RegisterHandler Функция, в которой мы отдельно регистрируем маршруты
 func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.GET("/", h.GetDevices)
 	router.GET("/device/:id", h.GetDevice)
-  router.GET("/application/:id", h.GetApplication)
-  router.POST("/application/add", h.AddToApplication)
-  router.POST("/application/delete", h.DeleteApplication)
+	router.GET("/current/:id", h.GetCurrent)
+	router.POST("/current/add", h.AddToCurrent)
+	router.POST("/current/delete", h.DeleteCurrent)
 }
-
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {
 	router.LoadHTMLGlob("templates/*")
 	router.Static("/styles", "./resources/styles")
 	router.Static("/img", "./resources/img")
 }
-
 
 func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {
 	logrus.Error(err.Error())

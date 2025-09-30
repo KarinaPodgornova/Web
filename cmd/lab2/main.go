@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"lab2/internal/app/config"
 	"lab2/internal/app/dsn"
 	"lab2/internal/app/handler"
 	"lab2/internal/app/repository"
 	"lab2/internal/pkg"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -29,6 +30,6 @@ func main() {
 
 	hand := handler.NewHandler(rep)
 
-	application := pkg.NewApp(conf, router, hand)
-	application.RunApp()
+	current := pkg.NewApp(conf, router, hand)
+	current.RunApp()
 }

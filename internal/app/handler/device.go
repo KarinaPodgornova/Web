@@ -3,43 +3,44 @@ package handler
 import (
 	"net/http"
 	"strconv"
+
 	//"strings"
 	//"time"
 
+	"lab2/internal/app/ds"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"lab2/internal/app/ds"
 )
-
 
 func (h *Handler) GetDevices(ctx *gin.Context) {
 	var devices []ds.Device
 	var err error
 
-	searchQuery := ctx.Query("query") 
-	if searchQuery == "" {            
+	searchQuery := ctx.Query("device_query")
+	if searchQuery == "" {
 		devices, err = h.Repository.GetDevices()
 		if err != nil {
 			logrus.Error(err)
 		}
 	} else {
-		devices, err = h.Repository.GetDevicesByTitle(searchQuery) 
+		devices, err = h.Repository.GetDevicesByTitle(searchQuery)
 		if err != nil {
 			logrus.Error(err)
 		}
 	}
 
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"devices": devices,
-		"query":  searchQuery, 
-		"application_count": h.Repository.GetApplicationCount(),
-		"Application_ID": h.Repository.GetActiveApplicationID(),
+		"devices":       devices,
+		"device_query":  searchQuery,
+		"current_count": h.Repository.GetCurrentCount(),
+		"Current_ID":    h.Repository.GetActiveCurrentID(),
 	})
 }
 
 func (h *Handler) GetDevice(ctx *gin.Context) {
-	idStr := ctx.Param("id") 
-	id, err := strconv.Atoi(idStr) 
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -49,19 +50,19 @@ func (h *Handler) GetDevice(ctx *gin.Context) {
 		logrus.Error(err)
 	}
 
-	ctx.HTML(http.StatusOK, "order.html", gin.H{
+	ctx.HTML(http.StatusOK, "device.html", gin.H{
 		"device": device,
 	})
 }
 
-func (h *Handler) GetApplication(ctx *gin.Context) {
-   	idStr := ctx.Param("id") 
-	id, err := strconv.Atoi(idStr) 
+func (h *Handler) GetCurrent(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	isDraft, err := h.Repository.IsDraftApplication(id)
+	isDraft, err := h.Repository.IsDraftCurrent(id)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -71,45 +72,45 @@ func (h *Handler) GetApplication(ctx *gin.Context) {
 		return
 	}
 
-    applicationItems, err := h.Repository.GetApplication(id)
-    if err != nil {
-        logrus.Error(err)
+	currentItems, err := h.Repository.GetCurrent(id)
+	if err != nil {
+		logrus.Error(err)
 	}
 
-    ctx.HTML(http.StatusOK, "request.html", gin.H{
-        "application": applicationItems,
-		"Application_ID": id,
-    })
+	ctx.HTML(http.StatusOK, "current.html", gin.H{
+		"current":    currentItems,
+		"Current_ID": id,
+	})
 }
 
-func (h *Handler) AddToApplication(ctx *gin.Context) {
-    deviceIDStr := ctx.PostForm("device_id")
-    deviceID, err := strconv.Atoi(deviceIDStr)
-    if err != nil {
-        h.errorHandler(ctx, http.StatusBadRequest, err)
-        return
-    }
+func (h *Handler) AddToCurrent(ctx *gin.Context) {
+	deviceIDStr := ctx.PostForm("device_id")
+	deviceID, err := strconv.Atoi(deviceIDStr)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
 
-    creatorID := uint(1)
+	creatorID := uint(1)
 
-    err = h.Repository.AddDevice(uint(deviceID), creatorID)
-    if err != nil {
-        h.errorHandler(ctx, http.StatusInternalServerError, err)
-        return
-    }
+	err = h.Repository.AddDevice(uint(deviceID), creatorID)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
-    ctx.Redirect(http.StatusSeeOther, ctx.Request.Referer())
+	ctx.Redirect(http.StatusSeeOther, ctx.Request.Referer())
 }
 
-func (h *Handler) DeleteApplication(ctx *gin.Context) {
-	appIDStr := ctx.PostForm("application_id")
+func (h *Handler) DeleteCurrent(ctx *gin.Context) {
+	appIDStr := ctx.PostForm("current_id")
 	appID, err := strconv.Atoi(appIDStr)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	err = h.Repository.DeleteApplication(uint(appID))
+	err = h.Repository.DeleteCurrent(uint(appID))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -118,18 +119,12 @@ func (h *Handler) DeleteApplication(ctx *gin.Context) {
 	ctx.Redirect(http.StatusSeeOther, "/")
 }
 
-
-
-
-
-
-
 /*
 func (h *Handler) GetDevices(ctx *gin.Context) {
 	var devices []ds.Device
 	var err error
 
-	searchQuery := ctx.Query("query")
+	searchQuery := ctx.Query("device_query")
 	if searchQuery == "" {
 		devices, err = h.Repository.GetDevices()
 		if err != nil {
@@ -154,7 +149,7 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
 		"time":    time.Now().Format("15:04:05"),
 		"devices": devices, // МЕНЯЕМ orders на devices
-		"query":   searchQuery,
+		"device_query":   searchQuery,
 		"cart_count": cartCount, // ДОБАВЛЯЕМ КОЛИЧЕСТВО В КОРЗИНЕ
 	})
 }
@@ -186,7 +181,7 @@ func (h *Handler) GetDevice(ctx *gin.Context) {
 	// ДОБАВЛЯЕМ cart_count ДЛЯ СТРАНИЦЫ УСТРОЙСТВА
 	cartCount := h.Repository.GetCartCount()
 
-	ctx.HTML(http.StatusOK, "order.html", gin.H{ // МЕНЯЕМ order.html на device.html
+	ctx.HTML(http.StatusOK, "device.html", gin.H{ // МЕНЯЕМ device.html на device.html
 		"device": device,
 		"specsArray": specsArray, // ДОБАВЬ ЭТУ СТРОКУ
 		"cart_count":  cartCount, // ДОБАВЛЯЕМ И ЗДЕСЬ
@@ -198,8 +193,8 @@ func (h *Handler) GetDevice(ctx *gin.Context) {
 func (h *Handler) GetCart(ctx *gin.Context) {
     // Здесь будет логика отображения корзины
     cartCount := h.Repository.GetCartCount()
-    
-    ctx.HTML(http.StatusOK, "request.html", gin.H{
+
+    ctx.HTML(http.StatusOK, "current.html", gin.H{
         "cart_count": cartCount,
     })
 }
@@ -207,8 +202,8 @@ func (h *Handler) GetCart(ctx *gin.Context) {
 func (h *Handler) GetRequest(ctx *gin.Context) {
     // Здесь будет логика отображения калькулятора
     cartCount := h.Repository.GetCartCount()
-    
-    ctx.HTML(http.StatusOK, "request.html", gin.H{
+
+    ctx.HTML(http.StatusOK, "current.html", gin.H{
         "cart_count": cartCount,
     })
 }
@@ -249,4 +244,3 @@ func (h *Handler) GetAllDevices(ctx *gin.Context) {
 	})
 }
 */
-
