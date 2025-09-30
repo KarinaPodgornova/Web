@@ -3,7 +3,7 @@
 <head>
     <title>Карточка</title>
     <link rel="stylesheet" href="/styles/order_style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
 </head>
 <body>
     <div class="footer-spacer"></div>
@@ -40,7 +40,9 @@
                 
                 <div class="divider"></div>
                 <div class="availability">В наличии</div>
-                <div class="product-power">Мощность: {{ .device.PowerNominal}}</div> 
+                <div class="product-power">Номинальная мощность: {{ .device.PowerNominal}} Bт</div> 
+                <div class="product-power" style="font-weight: 400";>Номинальное сопротивление: {{ .device.Resistance}} Ом</div> 
+                <div class="product-power" style="font-weight: 400;">Номинальное напряжение устройства: {{ .device.VoltageNominal}} В</div> 
                 
                 <div class="specifications">
                     {{ range .specsArray }}
