@@ -7,7 +7,7 @@ type Device struct {
     PowerNominal    float64 `gorm:"type:decimal(10,2);not null" json:"power_nominal"`
     Resistance      float64 `gorm:"type:decimal(10,2)" json:"resistance"`
     VoltageNominal  float64 `gorm:"type:decimal(10,2);default:12.0" json:"voltage_nominal"`
-    VoltageBord     float64 `gorm:"type:decimal(10,2);default:11.5" json:"voltage_bord"`
+    
     CoeffReserve    float64 `gorm:"type:decimal(10,2);default:2.0" json:"coeff_reserve"`
     CoeffEfficiency float64 `gorm:"type:decimal(10,2);default:0.85" json:"coeff_efficiency"`
     CurrentRequired float64 `gorm:"type:decimal(10,2)" json:"current_required"`

@@ -38,7 +38,7 @@ func (r *Repository) GetDevice(id int) (ds.Device, error) {
 
 func (r *Repository) GetDevicesByTitle(title string) ([]ds.Device, error) {
 	var devices []ds.Device
-	err := r.db.Where("title ILIKE ?", "%"+title+"%").Find(&devices).Error
+	err := r.db.Where("name ILIKE ?", "%"+title+"%").Find(&devices).Error
 	if err != nil {
 		return nil, err
 	}
