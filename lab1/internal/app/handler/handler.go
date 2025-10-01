@@ -25,7 +25,7 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 	var devices []repository.Device
 	var err error
 
-	searchQuery := ctx.Query("query")
+	searchQuery := ctx.Query("device_query")
 	if searchQuery == "" {
 		devices, err = h.Repository.GetDevices()
 		if err != nil {
@@ -43,10 +43,10 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 	cartCount := h.Repository.GetCurrentDevicesCount(currentCurrentID)
 
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"time":      time.Now().Format("15:04:05"),
-		"devices":   devices,
-		"cartCount": cartCount,
-		"query":     searchQuery,
+		"time":         time.Now().Format("15:04:05"),
+		"devices":      devices,
+		"cartCount":    cartCount,
+		"device_query": searchQuery,
 	})
 }
 
