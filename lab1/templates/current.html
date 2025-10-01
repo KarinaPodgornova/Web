@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/styles/request_style.css">
+    <link rel="stylesheet" href="/static/styles/current_style.css?">
     <title>Корзина - BMW</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -88,23 +88,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{range $id, $item := .cartItems}}
+                    {{range $index, $device := .devices}}
                     <tr style="border-bottom: 2px solid #e0e0e0;">
                         <td>
                             <div class="product-cell">
                                 <div class="product-image">
-                                    <img src="http://localhost:9000/lab1/img/{{$item.ID}}.jpg" alt="{{$item.Title}}">
+                                    <img src="http://localhost:9000/lab1/img/{{$device.ID}}.jpg" alt="{{$device.Title}}">
                                 </div>
                                 <div class="product-info">
-                                    <div class="product-title" style="font-weight: 300;">{{$item.Title}}</div>
-                                    <div class="product-power">Мощность: {{$item.Power}}</div>
+                                    <div class="product-title" style="font-weight: 300;">{{$device.Title}}</div>
+                                    <div class="product-power">Мощность: {{$device.Power}}</div>
                                 </div>
                             </div>
                         </td>
                         <td>
                             <div class="quantity-controls">
                                 <button class="quantity-btn">-</button>
-                                <input type="number" class="quantity-input" value="1" min="1">
+                                <!-- Используем Quantity из currentItems -->
+                                {{$quantity := 1}}
+                                {{if $.currentItems}}
+                                    {{if $item := index $.currentItems $device.ID}}
+                                        {{$quantity = $item.Quantity}}
+                                    {{end}}
+                                {{end}}
+                                <input type="number" class="quantity-input" value="{{$quantity}}" min="1">
                                 <button class="quantity-btn">+</button>
                             </div>
                         </td>
@@ -113,6 +120,8 @@
                         </td>
                         <td class="current-result">1.4 А</td>
                     </tr>
+                    {{else}}
+                    
                     {{end}}
                 </tbody>
             </table>

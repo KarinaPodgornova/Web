@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BMW</title>
-    <link rel="stylesheet" href="/static/styles/index_style.css?v4">
+    <link rel="stylesheet" href="/static/styles/index_style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -58,23 +58,23 @@
         </div>
         <div class="products-wrapper">
             <div class="products">
-                {{ range $id, $order := .orders }}
+                {{ range $id, $device := .devices }}
                 <div class="product">
                     <div class="product-image">
 
-                        <img src="http://localhost:9000/lab1/img/{{ $order.ID }}.jpg" alt="{{ $order.Title }}">
+                        <img src="http://localhost:9000/lab1/img/{{ $device.ID }}.jpg" alt="{{ $device.Title }}">
                     </div>
                     <div class="product-content">
-                        <div class="product-title">{{ $order.Title }}</div>
-                        <div class="product-description">Мощность: {{ $order.Power }}</div>
-                        <a href="/order/{{ $order.ID }}" class="add-to-cart" style="margin-top: 15px;">Подробнее</a>    
-                    <!--<a href="/order/{{ $order.ID }}" class="more">Подробнее</a>-->   
+                        <div class="product-title">{{ $device.Title }}</div>
+                        <div class="product-description">Мощность: {{ $device.Power }}</div>
+                        <a href="/device/{{ $device.ID }}" class="add-to-cart" style="margin-top: 15px;">Подробнее</a>    
+                    <!--<a href="/device/{{ $device.ID }}" class="more">Подробнее</a>-->   
                     </div>
                 </div>
                 {{ end }}
             </div>
             <div class="wrench-after-fourth">
-                <a href="/request" class="cart-link">
+                <a href="/current" class="cart-link">
                     <button>
                         <i class="fas fa-wrench fa-4x" style="color: black;"></i>
                         <span class="cart-count">{{.cartCount}}</span>

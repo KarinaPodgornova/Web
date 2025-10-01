@@ -1,122 +1,121 @@
 package handler
 
 import (
-  "github.com/gin-gonic/gin"
-  "github.com/sirupsen/logrus"
-  "lab1/internal/app/repository"
-  "net/http"
-  "strconv"
-  "time"
-  "strings"
+	"lab1/internal/app/repository"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type Handler struct {
-  Repository *repository.Repository
+	Repository *repository.Repository
 }
 
 func NewHandler(r *repository.Repository) *Handler {
-  return &Handler{
-    Repository: r,
-  }
+	return &Handler{
+		Repository: r,
+	}
 }
 
-func (h *Handler) GetOrders(ctx *gin.Context) {
-    var orders []repository.Order
-    var err error
-    // Получаем поисковый запрос
-    searchQuery := ctx.Query("query")
-    if searchQuery == "" {
-        // Если запроса нет - показываем все товары
-        orders, err = h.Repository.GetOrders()
-        if err != nil {
-            logrus.Error(err)
-        }
-    } else {
-        // Если есть поисковый запрос - ищем по названию
-        orders, err = h.Repository.GetOrdersByTitle(searchQuery)
-        if err != nil {
-            logrus.Error(err)
-        }
-    }
+func (h *Handler) GetDevices(ctx *gin.Context) {
+	var devices []repository.Device
+	var err error
 
-    ctx.HTML(http.StatusOK, "index.html", gin.H{
-        "time":      time.Now().Format("15:04:05"),
-        "orders":    orders, 
-        "cartCount": 2,
-        "query":     searchQuery,
-    })
+	searchQuery := ctx.Query("query")
+	if searchQuery == "" {
+		devices, err = h.Repository.GetDevices()
+		if err != nil {
+			logrus.Error(err)
+		}
+	} else {
+		devices, err = h.Repository.GetDevicesByTitle(searchQuery)
+		if err != nil {
+			logrus.Error(err)
+		}
+	}
+
+	// Получаем количество товаров в текущей заявке
+	currentCurrentID := h.Repository.GetCurrentCurrentID()
+	cartCount := h.Repository.GetCurrentDevicesCount(currentCurrentID)
+
+	ctx.HTML(http.StatusOK, "index.html", gin.H{
+		"time":      time.Now().Format("15:04:05"),
+		"devices":   devices,
+		"cartCount": cartCount,
+		"query":     searchQuery,
+	})
 }
 
-func (h *Handler) GetOrder(ctx *gin.Context) {
-  idStr := ctx.Param("id")
-  id, err := strconv.Atoi(idStr)
-  if err != nil {
-    logrus.Error(err)
-  }
+func (h *Handler) GetDevice(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logrus.Error(err)
+	}
 
-  order, err := h.Repository.GetOrder(id)
-  if err != nil {
-    logrus.Error(err)
-  }
-  
-  specsArray := strings.Split(order.Specs, "\n")
+	device, err := h.Repository.GetDevice(id)
+	if err != nil {
+		logrus.Error(err)
+	}
 
-  ctx.HTML(http.StatusOK, "order.html", gin.H{
-    "order": order,
-    "specsArray": specsArray,
-    "cartCount": 2,
-  })
+	specsArray := strings.Split(device.Specs, "\n")
+
+	currentCurrentID := h.Repository.GetCurrentCurrentID()
+	cartCount := h.Repository.GetCurrentDevicesCount(currentCurrentID)
+
+	ctx.HTML(http.StatusOK, "device.html", gin.H{
+		"device":     device,
+		"specsArray": specsArray,
+		"cartCount":  cartCount,
+	})
 }
 
+func (h *Handler) GetCurrent(ctx *gin.Context) {
+	currentCurrentID := h.Repository.GetCurrentCurrentID()
+	current := h.Repository.GetCurrent(currentCurrentID)
+	devicesInCurrent := h.Repository.GetCurrentDevices(currentCurrentID)
 
-func (h *Handler) GetRequest(ctx *gin.Context) {
-  // Получаем все товары
-  orders, err := h.Repository.GetOrders()
-  if err != nil {
-    logrus.Error(err)
-  }
-  
-  // Преобразуем массив в словарь для корзины
-  cartItemsMap := make(map[int]repository.Order)
-  // Берем первые 2 товара
-  if len(orders) >= 2 {
-    for i := 0; i < 2; i++ {
-      cartItemsMap[orders[i].ID] = orders[i]
-    }
-  } else if len(orders) > 0 {
-    for _, order := range orders {
-      cartItemsMap[order.ID] = order
-    }
-  }
+	// Создаем мапу для передачи в шаблон с дополнительной информацией
+	currentItems := make(map[int]repository.CurrentDevice)
+	for _, item := range current.DeviceItems {
+		currentItems[item.DeviceID] = item
+	}
 
-  ctx.HTML(http.StatusOK, "request.html", gin.H{
-    "cartItems": cartItemsMap, 
-    "cartCount": len(cartItemsMap),
-  })
+	ctx.HTML(http.StatusOK, "current.html", gin.H{
+		"current":      current,
+		"devices":      devicesInCurrent,
+		"currentItems": currentItems,
+		"cartCount":    len(devicesInCurrent),
+	})
 }
 
 func (h *Handler) GetCart(ctx *gin.Context) {
-  // Получаем все товары
-  orders, err := h.Repository.GetOrders()
-  if err != nil {
-    logrus.Error(err)
-  }
- 
-  cartItemsMap := make(map[int]repository.Order)
-  // Берем первые 2 товара
-  if len(orders) >= 2 {
-    for i := 0; i < 2; i++ {
-      cartItemsMap[orders[i].ID] = orders[i]
-    }
-  } else {
-    for _, order := range orders {
-      cartItemsMap[order.ID] = order
-    }
-  }
+	// Теперь корзина - это текущая заявка
+	currentCurrentID := h.Repository.GetCurrentCurrentID()
+	current := h.Repository.GetCurrent(currentCurrentID)
+	devicesInCurrent := h.Repository.GetCurrentDevices(currentCurrentID)
 
-  ctx.HTML(http.StatusOK, "request.html", gin.H{
-    "cartItems": cartItemsMap, 
-    "cartCount": len(cartItemsMap),
-  })
+	currentItems := make(map[int]repository.CurrentDevice)
+	for _, item := range current.DeviceItems {
+		currentItems[item.DeviceID] = item
+	}
+
+	ctx.HTML(http.StatusOK, "current.html", gin.H{
+		"current":      current,
+		"devices":      devicesInCurrent,
+		"currentItems": currentItems,
+		"cartCount":    len(devicesInCurrent),
+	})
 }
 
+func (h *Handler) GetAllCurrents(ctx *gin.Context) {
+	currents := h.Repository.GetAllCurrents()
+
+	ctx.HTML(http.StatusOK, "currents.html", gin.H{
+		"currents": currents,
+	})
+}

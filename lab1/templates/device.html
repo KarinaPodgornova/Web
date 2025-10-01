@@ -2,9 +2,9 @@
 
 <head>
     <title>Карточка</title>
-    <link rel="stylesheet" href="/static/styles/order_style.css">
+    <link rel="stylesheet" href="/static/styles/device_style.css">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   
 </head>
 <body>
     <div class="footer-spacer"></div>
@@ -30,7 +30,7 @@
         <div class="product-detail-container">
             <div class="product-image-section">
                 <div class="img-container">
-                    <img src="http://localhost:9000/lab1/img/{{ .order.ID }}.jpg" alt="{{ .order.Title }}" 
+                    <img src="http://localhost:9000/lab1/img/{{ .device.ID }}.jpg" alt="{{ .device.Title }}" 
                          class="product-image-large" 
                          style="width:412px; height:259px; object-fit:contain;">
                 </div>
@@ -38,11 +38,11 @@
             
             
             <div class="product-info-section">
-                <h1 class="product-title">{{ .order.Title }}</h1>
+                <h1 class="product-title">{{ .device.Title }}</h1>
                 
                 <div class="divider"></div>
                 <div class="availability">В наличии</div>
-                <div class="product-power">Мощность: {{ .order.Power }}</div> 
+                <div class="product-power">Мощность: {{ .device.Power }}</div> 
                 <div class="specifications">
                     {{ range .specsArray }}
                         <div>{{ . }}</div>
@@ -63,7 +63,7 @@
         <div class="description">
             <h2 style="font-size: 24px;">Описание</h2>
             <div class="divider"></div>  
-            <p style="font-weight: 300; color: #000;">{{ .order.Description }}</p>
+            <p style="font-weight: 300; color: #000;">{{ .device.Description }}</p>
         </div>
     </div>
 </body>

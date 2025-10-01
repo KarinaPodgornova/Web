@@ -1,35 +1,35 @@
 package api
 
 import (
-    "github.com/gin-gonic/gin"
-    "github.com/sirupsen/logrus"
-    "log"
-    "lab1/internal/app/handler"
-    "lab1/internal/app/repository"
-         // Добавить этот импорт
+	"lab1/internal/app/handler"
+	"lab1/internal/app/repository"
+	"log"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	// Добавить этот импорт
 )
 
 func StartServer() {
-    log.Println("Starting server")
+	log.Println("Starting server")
 
-    repo, err := repository.NewRepository()
-    if err != nil {
-        logrus.Error("ошибка инициализации репозитория")
-    }
+	repo, err := repository.NewRepository()
+	if err != nil {
+		logrus.Error("ошибка инициализации репозитория")
+	}
 
-    handler := handler.NewHandler(repo)
+	handler := handler.NewHandler(repo)
 
-    r := gin.Default()
-    
-   
-    // добавляем наш html/шаблон
-    r.LoadHTMLGlob("templates/*")
-    r.Static("/static", "./resources")
+	r := gin.Default()
 
-    r.GET("/", handler.GetOrders)
-    r.GET("/order/:id", handler.GetOrder)
-    r.GET("/request", handler.GetRequest)
+	// добавляем наш html/шаблон
+	r.LoadHTMLGlob("templates/*")
+	r.Static("/static", "./resources")
 
-    r.Run()
-    log.Println("Server down")
+	r.GET("/", handler.GetDevices)
+	r.GET("/device/:id", handler.GetDevice)
+	r.GET("/current", handler.GetCurrent)
+
+	r.Run()
+	log.Println("Server down")
 }
