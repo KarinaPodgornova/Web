@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMW</title>
+    <link rel="stylesheet" href="/styles/index_style.css?v4">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    
+    <div class="footer-spacer"></div>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <span class="logo-text">Устройства для BMW</span>
+                <div class="logo-small">
+                    <img src="http://localhost:9000/lab1/img/icon-logo.f2ce70f.svg" class="logo-small-image">
+                </div>
+            </div>
+            
+        </div>
+    </header>
+    
+    <div class="container">
+        <p class="page-title" style="margin-top: 5px;">МУЗЫКА И ЭЛЕКТРОНИКА</p>
+        
+        <div class="info-banner">
+            <p style="margin-bottom: -20px;">ВЫБЕРИТЕ УСТРОЙСТВО</p>
+            <img src="http://localhost:9000/lab1/img/logo-big.jpg" alt="BMW Logo">
+            <form action="/" method="GET" class="search-container" style="position: absolute; bottom: 30px; left: 20px; margin-left: 400px; width: 600px;">
+                <input type="text" name="device_query" placeholder="Поиск по названию..." class="search-field" value="{{ .device_query }}">
+                <button type="submit" class="search-button"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+
+        <div class="products-wrapper">
+            <div class="products">
+                {{ range .devices }}
+                <div class="product">
+                    <div class="product-image">
+                        <img src="http://localhost:9000/lab1/img/{{.Device_ID }}.jpg" alt="{{ .Name }}">
+                    </div>
+                    <div class="product-content">
+                        <div class="product-title">{{ .Name }}</div>
+                        <div class="product-description">
+                            <div>Мощность: {{ .PowerNominal }} Вт</div>
+                        </div>
+                        
+                        <div class="product-actions">
+                            <form method="POST" action="/current/add">
+                                <input type="hidden" name="device_id" value="{{ .Device_ID }}">
+                                <button type="submit" class="add-to-cart">Добавить</button>
+                            </form>
+                            <a href="/device/{{ .Device_ID }}" class=".more">Подробнее</a>
+                        </div>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+
+            <a href="/current/{{ .Current_ID }}" class="app-button">
+                <i class="fas fa-wrench fa-4x" style="color: black;"></i>
+                {{ if ne .current_count 0 }}
+                <span class="cart-badge">{{ .current_count }}</span>
+                {{ end }}
+            </a>
+        </div>    
+    </div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+# lab3/docker-compose.yml
+services:
+  db:
+    image: postgres:12
+    container_name: postgres_car_lab3    # ← другое имя
+    volumes:
+      - type: volume
+        source: postgresdb-data-lab3     # ← другой volume
+        target: /var/lib/postgresql/data
+    ports:
+      - "5435:5432"                      # ← другой порт
+    environment:
+      POSTGRES_USER: car_user
+      POSTGRES_DB: car_devices
+      POSTGRES_PASSWORD: car_password
+    networks:
+      - car-network-lab3                 # ← другая сеть
+
+  minio:
+    container_name: minio_car_lab3       # ← другое имя
+    image: minio/minio:latest
+    ports:
+      - "9006:9000"                      # ← другие порты
+      - "9007:9001"
+    environment:
+      MINIO_ACCESS_KEY: car_user
+      MINIO_SECRET_KEY: car_password
+      MINIO_CONSOLE_ADDRESS: ":9001"
+    volumes:
+      - minio-data-lab3:/data            # ← другой volume
+    command: server /data
+    networks:
+      - car-network-lab3
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis_car_lab3       # ← другое имя
+    restart: always
+    ports:
+      - '6382:6379'                      # ← другой порт
+    command: redis-server --save 20 1 --loglevel warning --requirepass car_password
+    volumes:
+      - redis-data-lab3:/data            # ← другой volume
+    networks:
+      - car-network-lab3
+
+  adminer:
+    image: adminer:4
+    container_name: adminer_car_lab3     # ← другое имя
+    ports:
+      - "8082:8080"                      # ← другой порт
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres_car_lab3
+    depends_on:
+      - db
+    networks:
+      - car-network-lab3
+
+volumes:
+  postgresdb-data-lab3:                  # ← другие volumes
+    driver: local
+  minio-data-lab3:
+    driver: local
+  redis-data-lab3:
+    driver: local
+
+networks:
+  car-network-lab3:                      # ← другая сеть
+    driver: bridge
