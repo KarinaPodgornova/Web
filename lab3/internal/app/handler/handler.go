@@ -24,19 +24,19 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/api/devices", h.CreateDevice)  // Без -create-device
 	router.PUT("/api/devices/:id", h.EditDevice)  // Без -edit-device
 	router.DELETE("/api/devices/:id", h.DeleteDevice)  // Без -delete-device
-	router.POST("/api/devices/:id/add-to-calculation", h.AddToCurrent)  // По теме: add to calculation (draft)
+	router.POST("/api/devices/:id/add-to-current-calculation", h.AddToCurrent)  // По теме: add to calculation (draft)
 	router.POST("/api/devices/:id/image", h.AddPhoto)  // Отдельный для изображения
 
-	router.GET("/api/calculations/cart", h.GetCurrentCart)  // Иконка корзины: id draft + count
-	router.GET("/api/calculations", h.GetAllCurrents)  // Список с фильтром по forming_date и status
-	router.GET("/api/calculations/:id", h.GetCurrent)
-	router.PUT("/api/calculations/:id", h.EditCurrent)  // Изменение тематических полей
-	router.PUT("/api/calculations/:id/form", h.FormCurrent)  // Формировать (creator)
-	router.PUT("/api/calculations/:id/finish", h.FinishCurrent)  // Завершить/отклонить (moderator, с расчётом)
-	router.DELETE("/api/calculations/:id", h.DeleteCurrent)  //
+	router.GET("/api/current-calculations/current-cart", h.GetCurrentCart)  // Иконка корзины: id draft + count
+	router.GET("/api/current-calculations", h.GetAllCurrents)  // Список с фильтром по forming_date и status
+	router.GET("/api/current-calculations/:id", h.GetCurrent)
+	router.PUT("/api/current-calculations/:id", h.EditCurrent)  // Изменение тематических полей
+	router.PUT("/api/current-calculations/:id/form", h.FormCurrent)  // Формировать (creator)
+	router.PUT("/api/current-calculations/:id/finish", h.FinishCurrent)  // Завершить/отклонить (moderator, с расчётом)
+	router.DELETE("/api/current-calculations/:id", h.DeleteCurrent)  //
 
-	router.DELETE("/api/calculation-devices/:current_id/:device_id", h.DeleteDeviceFromCurrent)
-	router.PUT("/api/calculation-devices/:current_id/:device_id", h.EditDeviceFromCurrent)
+	router.DELETE("/api/current-devices/:current_id/:device_id", h.DeleteDeviceFromCurrent)
+	router.PUT("/api/current-devices/:current_id/:device_id", h.EditDeviceFromCurrent)
 	// Users
 	router.POST("/api/users", h.CreateUser)  // Регистрация
 	router.GET("/api/users/me", h.GetInfo)  // После auth
