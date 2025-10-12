@@ -7,7 +7,7 @@ import (
 	"lab3/internal/app/ds"
 	"lab3/internal/app/serializer"
 	"time"
-	//"math"
+	"math"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -240,18 +240,31 @@ func (r *Repository) EditCurrent(id int, currentJSON serializer.CurrentJSON) (ds
 
 // CalculateDeviceCurrent рассчитывает силу тока для одного устройства
 func (r *Repository) CalculateDeviceCurrent(device *ds.Device, voltageBord float64, amount int) (float64, error) {
-	if device.PowerNominal <= 0 || device.Resistance <= 0 || device.VoltageNominal <= 0 || 
-	   voltageBord <= 0 || device.CoeffReserve <= 0 || device.CoeffEfficiency <= 0 {
-		return 0, errors.New("неверные параметры для расчёта тока")
-	}
-	
-	// I = (P_Hom / R_Hom) * (K_3anaca / (K_ng * (U_6opT / U_Hom)))
-	part1 := device.PowerNominal / device.Resistance
-	part2 := voltageBord / device.VoltageNominal
-	part3 := device.CoeffReserve / (device.CoeffEfficiency * part2)
-	
-	amperagePerDevice := part1 * part3
-	return amperagePerDevice * float64(amount), nil
+    if device.PowerNominal <= 0 || device.Resistance <= 0 || device.VoltageNominal <= 0 || 
+       voltageBord <= 0 || device.CoeffReserve <= 0 || device.CoeffEfficiency <= 0 {
+        return 0, errors.New("неверные параметры для расчёта тока")
+    }
+    
+    // ПРАВИЛЬНАЯ ФОРМУЛА из вашего изображения:
+    // I_требуемая = √(P_ном / R_ном) * (K_запаса / (K_пд * (U_борт / U_ном)))
+    
+    // 1. Вычисляем √(P_ном / R_ном)
+    part1 := math.Sqrt(device.PowerNominal / device.Resistance)
+    
+    // 2. Вычисляем (U_борт / U_ном)
+    voltageRatio := voltageBord / device.VoltageNominal
+    
+    // 3. Вычисляем (K_пд * (U_борт / U_ном))
+    denominator := device.CoeffEfficiency * voltageRatio
+    
+    // 4. Вычисляем (K_запаса / denominator)
+    part2 := device.CoeffReserve / denominator
+    
+    // 5. Итоговая сила тока для одного устройства
+    amperagePerDevice := part1 * part2
+    
+    // 6. Умножаем на количество устройств
+    return amperagePerDevice * float64(amount), nil
 }
 
 
@@ -335,4 +348,10 @@ func (r *Repository) FinishCurrent(id int, status string) (ds.Current, error) {
 	}
 	
 	return current, nil
+}
+
+
+// DB возвращает *gorm.DB для прямого доступа к БД
+func (r *Repository) DB() *gorm.DB {
+    return r.db
 }

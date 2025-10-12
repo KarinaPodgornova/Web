@@ -5,11 +5,54 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"lab3/internal/app/ds"
 	"lab3/internal/app/repository"
 	"lab3/internal/app/serializer"
 	"github.com/gin-gonic/gin"
+	"math"
 )
 
+// calculateAmperage - функция расчета силы тока для устройства в заявке
+// calculateAmperage - ПРАВИЛЬНАЯ функция расчета силы тока по вашей формуле
+func (h *Handler) calculateAmperage(device ds.Device, current ds.Current, amount int) float64 {
+    // Базовые значения по умолчанию
+    voltageBord := current.VoltageBord
+    if voltageBord == 0 {
+        voltageBord = 11.5 // минимальное напряжение бортовой сети
+    }
+    
+    power := device.PowerNominal
+    resistance := device.Resistance
+    voltageNominal := device.VoltageNominal
+    efficiency := device.CoeffEfficiency
+    reserve := device.CoeffReserve
+    
+    // Проверка на нулевые значения
+    if resistance == 0 || voltageNominal == 0 || efficiency == 0 || reserve == 0 {
+        return 0
+    }
+    
+    // ПРАВИЛЬНАЯ ФОРМУЛА:
+    // I_требуемая = √(P_ном / R_ном) * (K_запаса / (K_пд * (U_борт / U_ном)))
+    
+    // 1. Вычисляем √(P_ном / R_ном)
+    part1 := math.Sqrt(power / resistance)
+    
+    // 2. Вычисляем (U_борт / U_ном)
+    voltageRatio := voltageBord / voltageNominal
+    
+    // 3. Вычисляем (K_пд * (U_борт / U_ном))
+    denominator := efficiency * voltageRatio
+    
+    // 4. Вычисляем (K_запаса / denominator)
+    part2 := reserve / denominator
+    
+    // 5. Итоговая сила тока для одного устройства
+    amperagePerDevice := part1 * part2
+    
+    // 6. Умножаем на количество устройств
+    return amperagePerDevice * float64(amount)
+}
 func (h *Handler) DeleteDeviceFromCurrent(ctx *gin.Context) {
 	current_id, err := strconv.Atoi(ctx.Param("current_id"))
 	if err != nil {
@@ -64,16 +107,41 @@ func (h *Handler) EditDeviceFromCurrent(ctx *gin.Context) {
 		return
 	}
 
-	currentDevice, err := h.Repository.EditDeviceFromCurrent(current_id, device_id, currentDeviceJSON)
+	// 1. Получаем текущую связь с предзагрузкой Device и Current
+	var currentDevice ds.CurrentDevices
+	err = h.Repository.DB().Preload("Device").Preload("Current").
+		Where("current_id = ? AND device_id = ?", current_id, device_id).
+		First(&currentDevice).Error
+	
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			h.errorHandler(ctx, http.StatusNotFound, err)
-		} else {
-			h.errorHandler(ctx, http.StatusInternalServerError, err)
-		}
+		h.errorHandler(ctx, http.StatusNotFound, errors.New("связь устройства с заявкой не найдена"))
 		return
+	}
+
+	// 2. Обновляем количество
+	currentDevice.Amount = currentDeviceJSON.Amount
+
+	// 3. РАССЧИТЫВАЕМ Amperage с помощью нашей функции
+	currentDevice.Amperage = h.calculateAmperage(
+		currentDevice.Device, 
+		currentDevice.Current, 
+		currentDeviceJSON.Amount,
+	)
+
+	// 4. Сохраняем обновленную связь
+	if err := h.Repository.DB().Save(&currentDevice).Error; err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	// 5. Если заявка завершена, пересчитываем общую силу тока
+	if currentDevice.Current.Status == "completed" {
+		err = h.Repository.RecalculateCurrentAmperage(uint(current_id))
+		if err != nil {
+			h.errorHandler(ctx, http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	ctx.JSON(http.StatusOK, serializer.CurrentDeviceToJSON(currentDevice))
 }
-
