@@ -6,7 +6,7 @@ type CurrentDevices struct {
 	Device_ID  uint    `gorm:"not null" json:"device_id"`
 	Amount     int     `json:"amount"`
 
-	VoltageBord     float64 `gorm:"type:decimal(10,2);default:11.5" json:"voltage_bord"`
+	//VoltageBord     float64 `gorm:"type:decimal(10,2);default:11.5" json:"voltage_bord"`
 	
 	Amperage   float64 `gorm:"type:numeric(10,3)" json:"amperage"`
 

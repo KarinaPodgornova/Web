@@ -17,9 +17,9 @@ func main() {
 	}
 
 	err = db.AutoMigrate(
-		&ds.Users{},
-		&ds.Device{},
-		&ds.Current{},
+		//&ds.Users{},
+		//&ds.Device{},
+		//&ds.Current{},
 		&ds.CurrentDevices{},
 	)
 	if err != nil {

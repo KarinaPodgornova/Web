@@ -15,4 +15,6 @@ type Device struct {
     Image           string  `gorm:"type:varchar(100)" json:"image"`
     InStock         bool    `gorm:"type:boolean;default:true" json:"in_stock"`
     IsDelete        bool    `gorm:"type:boolean;default:false" json:"is_delete"`
+
+   // Amount     int     `json:"amount"`
 }

@@ -7,12 +7,12 @@ import (
 	"lab3/internal/app/ds"
 	"lab3/internal/app/serializer"
 	"time"
-	"math"
+	//"math"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-var errNoDraft = errors.New("no draft for this user")
+//var errNoDraft = errors.New("no draft for this user")
 
 func (r *Repository) GetAllCurrents(from, to time.Time, status string) ([]ds.Current, error) {
 	var currents []ds.Current
@@ -98,6 +98,7 @@ func (r *Repository) GetCurrentDraft(creator_ID uint) (ds.Current, bool, error) 
 			Creator_ID: creator_ID,
 			
 			Created_At: time.Now(),
+			VoltageBord: 11.5,
 		}
 		result := r.db.Create(&current)
 		if result.Error != nil {
@@ -166,28 +167,23 @@ func (r *Repository) FormCurrent(current_id int, status string) (ds.Current, err
 		return ds.Current{}, err
 	}
 
-	// user, err := r.GetUserByID(r.GetUserID())
-	// if err != nil{
-	// 	return ds.Research{}, fmt.Errorf("%w: пользователь на авторизирован", ErrNotAllowed)
-	// }
-
-	// if research.CreatorID != r.userId && !user.IsModerator{
-	// 	return ds.Research{}, fmt.Errorf("%w: у вас нет прав чтобы эта заявка имела статус %s", ErrNotAllowed, status)
-	// }
-
 	if current.Status != "draft" {
 		return ds.Current{}, fmt.Errorf("эта заявка не может быть %s", status)
 	}
 
 	if status != "deleted" {
-		if current.Amperage < 0 {
-			return ds.Current{}, errors.New("вы не написали нагрузку системы")
+		// Проверяем, что есть устройства в заявке
+		currentDevices, err := r.GetDevicesCurrents(int(current.Current_ID))
+		if err != nil {
+			return ds.Current{}, err
 		}
-		currentDevices, _ := r.GetDevicesCurrents(int(current.Current_ID))
-		for _, currentDevices := range currentDevices {
-			if currentDevices.VoltageBord < 0 {
-				return ds.Current{}, errors.New("вы ввели некорректное напряжение бортовой сети")
-			}
+		if len(currentDevices) == 0 {
+			return ds.Current{}, errors.New("нельзя сформировать пустую заявку")
+		}
+		
+		// Проверяем корректность напряжения бортовой сети
+		if current.VoltageBord <= 0 {
+			return ds.Current{}, errors.New("вы ввели некорректное напряжение бортовой сети")
 		}
 	}
 
@@ -205,14 +201,16 @@ func (r *Repository) FormCurrent(current_id int, status string) (ds.Current, err
 	return current, nil
 }
 
+
 func (r *Repository) EditCurrent(id int, currentJSON serializer.CurrentJSON) (ds.Current, error) {
 	current := ds.Current{}
 	if id < 0 {
 		return ds.Current{}, errors.New("неправильное id, должно быть >= 0")
 	}
-	if currentJSON.Amperage < 0 {
-		return ds.Current{}, errors.New("неправильная нагрузка")
+	if currentJSON.VoltageBord <= 0 {
+		return ds.Current{}, errors.New("неправильное напряжение бортовой сети")
 	}
+	
 	err := r.db.Where("current_id = ? and status != 'deleted'", id).First(&current).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -220,21 +218,75 @@ func (r *Repository) EditCurrent(id int, currentJSON serializer.CurrentJSON) (ds
 		}
 		return ds.Current{}, err
 	}
-	err = r.db.Model(&current).Updates(serializer.CurrentFromJSON(currentJSON)).Error
+	
+	// Обновляем VoltageBord
+	err = r.db.Model(&current).Update("voltage_bord", currentJSON.VoltageBord).Error
 	if err != nil {
 		return ds.Current{}, err
 	}
-	return current, nil
+	
+	// Пересчитываем силу тока для всех устройств в заявке
+	if current.Status == "completed" {
+		err = r.RecalculateCurrentAmperage(current.Current_ID)
+		if err != nil {
+			return ds.Current{}, err
+		}
+	}
+	
+	err = r.db.First(&current, id).Error
+	return current, err
 }
 
-func CalculateDeviceCurrent(device *ds.Device, cd *ds.CurrentDevices) (float64, error) {
-	if device.PowerNominal <= 0 || device.Resistance <= 0 || device.VoltageNominal <= 0 || cd.VoltageBord <= 0 || device.CoeffReserve <= 0 || device.CoeffEfficiency <= 0 {
+
+// CalculateDeviceCurrent рассчитывает силу тока для одного устройства
+func (r *Repository) CalculateDeviceCurrent(device *ds.Device, voltageBord float64, amount int) (float64, error) {
+	if device.PowerNominal <= 0 || device.Resistance <= 0 || device.VoltageNominal <= 0 || 
+	   voltageBord <= 0 || device.CoeffReserve <= 0 || device.CoeffEfficiency <= 0 {
 		return 0, errors.New("неверные параметры для расчёта тока")
 	}
-	sqrtTerm := math.Sqrt(device.PowerNominal / device.Resistance)
-	denom := device.CoeffEfficiency * (cd.VoltageBord / device.VoltageNominal)
-	adjustTerm := device.CoeffReserve / denom
-	return sqrtTerm * adjustTerm, nil
+	
+	// I = (P_Hom / R_Hom) * (K_3anaca / (K_ng * (U_6opT / U_Hom)))
+	part1 := device.PowerNominal / device.Resistance
+	part2 := voltageBord / device.VoltageNominal
+	part3 := device.CoeffReserve / (device.CoeffEfficiency * part2)
+	
+	amperagePerDevice := part1 * part3
+	return amperagePerDevice * float64(amount), nil
+}
+
+
+
+// RecalculateCurrentAmperage пересчитывает силу тока для всех устройств в заявке
+func (r *Repository) RecalculateCurrentAmperage(currentID uint) error {
+	current, err := r.GetSingleCurrent(int(currentID))
+	if err != nil {
+		return err
+	}
+
+	currentDevices, err := r.GetDevicesCurrents(int(currentID))
+	if err != nil {
+		return err
+	}
+
+	for _, currentDevice := range currentDevices {
+		device, err := r.GetDevice(int(currentDevice.Device_ID))
+		if err != nil {
+			return err
+		}
+		
+		// ПЕРЕДАЕМ УКАЗАТЕЛЬ НА УСТРОЙСТВО!
+		amperage, err := r.CalculateDeviceCurrent(device, current.VoltageBord, currentDevice.Amount)
+		if err != nil {
+			return err
+		}
+		
+		err = r.db.Model(&currentDevice).Update("amperage", amperage).Error
+		if err != nil {
+			return err
+		}
+	}
+	
+	return nil
 }
 
 func (r *Repository) FinishCurrent(id int, status string) (ds.Current, error) {
@@ -255,51 +307,32 @@ func (r *Repository) FinishCurrent(id int, status string) (ds.Current, error) {
 	if err != nil {
 		return ds.Current{}, err
 	} else if current.Status != "formed" {
-		return ds.Current{}, fmt.Errorf("это исследование не может быть %s", status)
+		return ds.Current{}, fmt.Errorf("эта заявка не может быть %s", status)
 	}
 
-	err = r.db.Model(&current).Updates(ds.Current{
-		Status: status,
-		Finish_Date: sql.NullTime{
+	// Обновляем через map чтобы избежать проблем с типами
+	moderatorID := user.User_ID
+	updates := map[string]interface{}{
+		"status": status,
+		"finish_date": sql.NullTime{
 			Time:  time.Now(),
 			Valid: true,
 		},
-		Moderator_ID: uint(user.User_ID),
-	}).Error
+		"moderator_id": &moderatorID,
+	}
+
+	err = r.db.Model(&current).Updates(updates).Error
 	if err != nil {
 		return ds.Current{}, err
 	}
 
+	// Если заявка завершена, пересчитываем силу тока
 	if status == "completed" {
-		currentsDevice, err := r.GetDevicesCurrents(int(current.Current_ID))
-		if err != nil {
-			return ds.Current{}, err
-		}
-		var totalAmperage float64 = 0
-		for _, currentDevice := range currentsDevice {
-			device, err := r.GetDevice(int(currentDevice.Device_ID))
-			if err != nil {
-				return ds.Current{}, err
-			}
-			deviceAmperage, err := CalculateDeviceCurrent(device, &currentDevice)
-			if err != nil {
-				return ds.Current{}, err
-			}
-			amperageWithAmount := deviceAmperage * float64(currentDevice.Amount)
-			err = r.db.Model(&currentDevice).Updates(ds.CurrentDevices{
-				Amperage: amperageWithAmount,
-			}).Error
-			if err != nil {
-				return ds.Current{}, err
-			}
-			totalAmperage += amperageWithAmount
-		}
-		// Сохрани общий ток в заявке
-		err = r.db.Model(&current).Update("amperage", totalAmperage).Error
+		err = r.RecalculateCurrentAmperage(current.Current_ID)
 		if err != nil {
 			return ds.Current{}, err
 		}
 	}
+	
 	return current, nil
-
 }

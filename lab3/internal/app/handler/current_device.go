@@ -1,3 +1,4 @@
+// current_device.go
 package handler
 
 import (
@@ -12,17 +13,18 @@ import (
 func (h *Handler) DeleteDeviceFromCurrent(ctx *gin.Context) {
 	current_id, err := strconv.Atoi(ctx.Param("current_id"))
 	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID заявки"))
 		return
 	}
 
 	device_id, err := strconv.Atoi(ctx.Param("device_id"))
 	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID устройства"))
 		return
 	}
 
-	current, err := h.Repository.DeleteDeviceFromCurrent(current_id, device_id)
+	// Удаляем устройство из заявки
+	err = h.Repository.DeleteDeviceFromCurrent(current_id, device_id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -34,28 +36,28 @@ func (h *Handler) DeleteDeviceFromCurrent(ctx *gin.Context) {
 		return
 	}
 
-	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(current)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, serializer.CurrentToJSON(current, creatorLogin, moderatorLogin))
+	// Возвращаем только статус успеха
+	ctx.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"message": "Устройство удалено из заявки",
+	})
 }
 
 func (h *Handler) EditDeviceFromCurrent(ctx *gin.Context) {
+	// Берем параметры из URL
 	current_id, err := strconv.Atoi(ctx.Param("current_id"))
 	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID заявки"))
 		return
 	}
 
 	device_id, err := strconv.Atoi(ctx.Param("device_id"))
 	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID устройства"))
 		return
 	}
 
+	// Берем только обновляемые поля из body
 	var currentDeviceJSON serializer.CurrentDeviceJSON
 	if err := ctx.BindJSON(&currentDeviceJSON); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
@@ -74,3 +76,4 @@ func (h *Handler) EditDeviceFromCurrent(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, serializer.CurrentDeviceToJSON(currentDevice))
 }
+

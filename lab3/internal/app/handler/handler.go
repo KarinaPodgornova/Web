@@ -35,9 +35,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.PUT("/api/calculations/:id/finish", h.FinishCurrent)  // Завершить/отклонить (moderator, с расчётом)
 	router.DELETE("/api/calculations/:id", h.DeleteCurrent)  //
 
-	router.DELETE("/api/calculation-devices", h.DeleteDeviceFromCurrent)  // Без PK, body с current_id + device_id
-	router.PUT("/api/calculation-devices", h.EditDeviceFromCurrent)  // Без PK, body с current_id + device_id + updates
-
+	router.DELETE("/api/calculation-devices/:current_id/:device_id", h.DeleteDeviceFromCurrent)
+	router.PUT("/api/calculation-devices/:current_id/:device_id", h.EditDeviceFromCurrent)
 	// Users
 	router.POST("/api/users", h.CreateUser)  // Регистрация
 	router.GET("/api/users/me", h.GetInfo)  // После auth
@@ -46,6 +45,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/api/users/logout", h.SignOut)
 
 }
+
+
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {
 	router.LoadHTMLGlob("templates/*")
@@ -75,3 +76,5 @@ func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error)
 		"description": errorMessage,
 	})
 }
+
+

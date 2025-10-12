@@ -9,35 +9,29 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *Repository) DeleteDeviceFromCurrent(current_id int, device_id int) (ds.Current, error) {
-	// userId := r.userId
-	// if userId == 0 {
-	//     return ds.Research{}, fmt.Errorf("%w: пользователь не авторизирован", ErrNotAllowed)
-	// }
-
-	// user, err := r.GetUserByID(userId)
-	// if err != nil {
-	// 	return ds.Research{}, err
-	// }
-
+func (r *Repository) DeleteDeviceFromCurrent(current_id int, device_id int) error {
+	// Проверяем существование заявки
 	var current ds.Current
 	err := r.db.Where("current_id = ?", current_id).First(&current).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ds.Current{}, fmt.Errorf("%w: заявка с id %d", ErrNotFound, current_id)
+			return fmt.Errorf("%w: заявка с id %d", ErrNotFound, current_id)
 		}
-		return ds.Current{}, err
+		return err
 	}
 
-	// if research.CreatorID != r.userId && !user.IsModerator{
-	// 	return ds.Research{}, fmt.Errorf("%w: Вы не создатель этого исследования", ErrNotAllowed)
-	// }
-
-	err = r.db.Where("device_id = ? and current_id = ?", device_id, current_id).Delete(&ds.CurrentDevices{}).Error
-	if err != nil {
-		return ds.Current{}, err
+	// Удаляем связь
+	result := r.db.Where("device_id = ? and current_id = ?", device_id, current_id).Delete(&ds.CurrentDevices{})
+	if result.Error != nil {
+		return result.Error
 	}
-	return current, nil
+
+	// Проверяем, была ли удалена хотя бы одна запись
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("%w: устройство %d не найдено в заявке %d", ErrNotFound, device_id, current_id)
+	}
+
+	return nil
 }
 
 func (r *Repository) EditDeviceFromCurrent(current_id int, device_id int, currentDeviceJSON serializer.CurrentDeviceJSON) (ds.CurrentDevices, error) {
