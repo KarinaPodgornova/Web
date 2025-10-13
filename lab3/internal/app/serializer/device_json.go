@@ -4,20 +4,21 @@ import "lab3/internal/app/ds"
 
 // DeviceJSON представляет устройство в формате JSON
 type DeviceJSON struct {
-	Device_ID       uint    `json:"device_id"`       // Идентификатор устройства
-	Name            string  `json:"name"`            // Название устройства
-	Type            string  `json:"type"`            // Тип устройства
-	PowerNominal    float64 `json:"power_nominal"`   // Номинальная мощность
-	Resistance      float64 `json:"resistance"`      // Сопротивление
-	VoltageNominal  float64 `json:"voltage_nominal"` // Номинальное напряжение
-	CoeffReserve    float64 `json:"coeff_reserve"`   // Коэффициент резерва
-	CoeffEfficiency float64 `json:"coeff_efficiency"`// Коэффициент эффективности
-	CurrentRequired float64 `json:"current_required"`// Требуемая сила тока
-	Description     string  `json:"description"`     // Описание устройства
-	Image           string  `json:"image"`           // URL изображения
-	InStock         bool    `json:"in_stock"`        // Наличие на складе
-	IsDelete        bool    `json:"is_delete"`       // Флаг удаления
+	Device_ID       uint    `json:"device_id"`      
+	Name            string  `json:"name"`            
+	Type            string  `json:"type"`            
+	PowerNominal    float64 `json:"power_nominal"`   
+	Resistance      float64 `json:"resistance"`     
+	VoltageNominal  float64 `json:"voltage_nominal"` 
+	CoeffReserve    float64 `json:"coeff_reserve"`  
+	CoeffEfficiency float64 `json:"coeff_efficiency"`
+	CurrentRequired float64 `json:"current_required"`
+	Description     string  `json:"description"`    
+	Image           string  `json:"image"`           
+	InStock         bool    `json:"in_stock"`       
+	IsDelete        bool    `json:"is_delete"`      
 }
+
 
 // DeviceToJSON преобразует ds.Device в DeviceJSON
 func DeviceToJSON(device ds.Device) DeviceJSON {

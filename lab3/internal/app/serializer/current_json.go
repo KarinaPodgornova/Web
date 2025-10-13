@@ -8,14 +8,14 @@ import (
 
 // CurrentJSON представляет заявку на расчет силы тока в формате JSON
 type CurrentJSON struct {
-	ID              uint       `json:"current_id"`      // Идентификатор заявки
-	Status          string     `json:"status"`          // Статус заявки
-	Created_At      time.Time  `json:"created_at"`      // Дата создания
-	Creator_Login   string     `json:"creator_login"`   // Логин создателя
-	Moderator_Login *string    `json:"moderator_login"` // Логин модератора (опционально)
-	Forming_Date    *time.Time `json:"form_date"`       // Дата формирования (опционально)
-	Finish_Date     *time.Time `json:"finish_date"`     // Дата завершения (опционально)
-	VoltageBord     float64    `json:"voltage_bord"`    // Бортовое напряжение для расчета
+	ID              uint       `json:"current_id"`      
+	Status          string     `json:"status"`         
+	Created_At      time.Time  `json:"created_at"`      
+	Creator_Login   string     `json:"creator_login"`   
+	Moderator_Login *string    `json:"moderator_login"` 
+	Forming_Date    *time.Time `json:"form_date"`       
+	Finish_Date     *time.Time `json:"finish_date"`     
+	VoltageBord     float64    `json:"voltage_bord"`    
 }
 
 // StatusJSON представляет статус для обновления заявки
@@ -26,16 +26,16 @@ type StatusJSON struct {
 // CurrentToJSON преобразует структуру ds.Current в JSON-формат с учетом логинов
 func CurrentToJSON(current ds.Current, creator_login string, moderator_login string) CurrentJSON {
 	var form_date, finish_date *time.Time
-	// Если Forming_Date валиден, создаем указатель на время
+	
 	if current.Forming_Date.Valid {
 		form_date = &current.Forming_Date.Time
 	}
-	// Если Finish_Date валиден, создаем указатель на время
+	
 	if current.Finish_Date.Valid {
 		finish_date = &current.Finish_Date.Time
 	}
 	var m_login *string
-	// Если moderator_login не пустой, создаем указатель на него
+	
 	if moderator_login != "" {
 		m_login = &moderator_login
 	}
@@ -54,7 +54,7 @@ func CurrentToJSON(current ds.Current, creator_login string, moderator_login str
 
 // CurrentFromJSON преобразует JSON-данные в структуру ds.Current
 func CurrentFromJSON(currentJSON CurrentJSON) ds.Current {
-	// Инициализируем структуру с учетом всех полей
+	
 	current := ds.Current{
 		Current_ID:  currentJSON.ID,
 		Status:      currentJSON.Status,

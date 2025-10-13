@@ -4,11 +4,11 @@ import "lab3/internal/app/ds"
 
 // CurrentDeviceJSON представляет связь заявки и устройства в формате JSON
 type CurrentDeviceJSON struct {
-	CurrDev_ID  uint    `json:"curr_dev_id"`   // Идентификатор связи
-	Current_ID  uint    `json:"current_id"`    // Идентификатор заявки
-	Device_ID   uint    `json:"device_id"`     // Идентификатор устройства
-	Amount      int     `json:"amount"`        // Количество устройств
-	Amperage    float64 `json:"amperage"`      // Сила тока
+	CurrDev_ID  uint    `json:"curr_dev_id"`   
+	Current_ID  uint    `json:"current_id"`    
+	Device_ID   uint    `json:"device_id"`     
+	Amount      int     `json:"amount"`        
+	Amperage    float64 `json:"amperage"`      
 }
 
 // CurrentDeviceToJSON преобразует ds.CurrentDevices в CurrentDeviceJSON

@@ -4,10 +4,10 @@ import "lab3/internal/app/ds"
 
 // UserJSON представляет пользователя в формате JSON
 type UserJSON struct {
-	ID          uint   `json:"id"`          // Идентификатор пользователя
-	Login       string `json:"login"`       // Логин пользователя
-	Password    string `json:"password"`    // Пароль пользователя (не экспортируется в JSON)
-	IsModerator bool   `json:"is_moderator"`// Флаг модератора
+	ID          uint   `json:"id"`         
+	Login       string `json:"login"`      
+	Password    string `json:"password"`  
+	IsModerator bool   `json:"is_moderator"`
 }
 
 // UserToJSON преобразует ds.Users в UserJSON
