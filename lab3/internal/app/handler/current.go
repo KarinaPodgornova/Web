@@ -242,6 +242,19 @@ func (h *Handler) FinishCurrent(ctx *gin.Context) {
 		}
 		return
 	}
+	currentDevices, err := h.Repository.GetDevicesCurrents(id)
+    if err != nil {
+        h.errorHandler(ctx, http.StatusInternalServerError, err)
+        return
+    }
+
+	// ← РАССЧИТЫВАЕМ ОБЩУЮ СИЛУ ТОКА
+    var totalAmperage float64
+    for _, device := range currentDevices {
+        totalAmperage += device.Amperage
+    }
+
+    
 
 	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(current)
 	if err != nil {
@@ -249,7 +262,13 @@ func (h *Handler) FinishCurrent(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, serializer.CurrentToJSON(current, creatorLogin, moderatorLogin))
+
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"current": serializer.CurrentToJSON(current, creatorLogin, moderatorLogin),
+		"devices_with_amperage": serializer.CurrentDevicesArrayToJSON(currentDevices),
+		"total_amperage": totalAmperage,
+	})
 }
 
 

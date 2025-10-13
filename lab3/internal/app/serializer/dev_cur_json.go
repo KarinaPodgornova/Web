@@ -32,3 +32,12 @@ func CurrentDeviceFromJSON(deviceJSON CurrentDeviceJSON) ds.CurrentDevices {
 		Amperage:    deviceJSON.Amperage,
 	}
 }
+
+// CurrentDevicesArrayToJSON преобразует массив ds.CurrentDevices в массив CurrentDeviceJSON
+func CurrentDevicesArrayToJSON(currentDevices []ds.CurrentDevices) []CurrentDeviceJSON {
+	result := make([]CurrentDeviceJSON, 0, len(currentDevices))
+	for _, cd := range currentDevices {
+		result = append(result, CurrentDeviceToJSON(cd))
+	}
+	return result
+}
