@@ -16,7 +16,7 @@ type CurrentJSON struct {
 	Forming_Date    *time.Time `json:"form_date"`       
 	Finish_Date     *time.Time `json:"finish_date"`     
 	VoltageBord     float64    `json:"voltage_bord"` 
-	TotalAmperage   float64    `json:"total_amperage"`    
+	//TotalAmperage   float64    `json:"total_amperage"`    
 }
 
 // StatusJSON представляет статус для обновления заявки

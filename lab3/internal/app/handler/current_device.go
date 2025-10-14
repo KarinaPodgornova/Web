@@ -121,12 +121,18 @@ func (h *Handler) EditDeviceFromCurrent(ctx *gin.Context) {
 	// 2. Обновляем количество
 	currentDevice.Amount = currentDeviceJSON.Amount
 
-	// 3. РАССЧИТЫВАЕМ Amperage с помощью нашей функции
-	currentDevice.Amperage = h.calculateAmperage(
-		currentDevice.Device, 
-		currentDevice.Current, 
-		currentDeviceJSON.Amount,
-	)
+	// 3. ← РАССЧИТЫВАЕМ Amperage ТОЛЬКО ДЛЯ ЗАВЕРШЕННЫХ ЗАЯВОК
+	if currentDevice.Current.Status == "completed" {
+		currentDevice.Amperage = h.calculateAmperage(
+			currentDevice.Device, 
+			currentDevice.Current, 
+			currentDeviceJSON.Amount,
+		)
+	} else {
+		// ← ДЛЯ ВСЕХ ДРУГИХ СТАТУСОВ - сила тока = 0
+		currentDevice.Amperage = 0
+	}
+
 
 	// 4. Сохраняем обновленную связь
 	if err := h.Repository.DB().Save(&currentDevice).Error; err != nil {

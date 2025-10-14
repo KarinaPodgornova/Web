@@ -250,9 +250,11 @@ func (h *Handler) FinishCurrent(ctx *gin.Context) {
 
 	// ← РАССЧИТЫВАЕМ ОБЩУЮ СИЛУ ТОКА
     var totalAmperage float64
+	if statusJSON.Status == "completed" {
     for _, device := range currentDevices {
         totalAmperage += device.Amperage
     }
+}
 
     
 
