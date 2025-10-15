@@ -26,9 +26,7 @@ import (
 // @Failure 400 {object} map[string]string "Неверный формат даты"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
-// @Router /current-calculations/current-calculations [get]
-
-	
+// @Router /current-calculations/current-calculations [get]	
 func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 	fromDate := ctx.Query("from")
 	var from = time.Time{}
@@ -57,6 +55,7 @@ func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 
 	currents, err := h.Repository.GetAllCurrents(from, to, status)
 	if err != nil {
+		fmt.Printf("Ошибка GetAllCurrents: %v\n", err)
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -66,12 +65,14 @@ func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 	for _, c := range currents {
 		creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(c)
 		if err != nil {
+			fmt.Printf("Ошибка GetModeratorAndCreatorLogin: %v\n", err)
 			h.errorHandler(ctx, http.StatusInternalServerError, err)
 			return
 		}
 		resp = append(resp, serializer.CurrentToJSON(c, creatorLogin, moderatorLogin))
 	}
 	ctx.JSON(http.StatusOK, resp)
+	
 }
 
 // GetCurrentCart godoc
@@ -84,7 +85,6 @@ func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /current-calculations/current-cart [get]
-
 func (h *Handler) GetCurrentCart(ctx *gin.Context) {
 	
 	userID, err := getUserID(ctx)
@@ -137,7 +137,6 @@ func (h *Handler) GetCurrentCart(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /current-calculations/{id} [get]
-
 func (h *Handler) GetCurrent(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -196,7 +195,6 @@ func (h *Handler) GetCurrent(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /current-calculations/{id}/form [put]
-
 func (h *Handler) FormCurrent(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -242,7 +240,6 @@ func (h *Handler) FormCurrent(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /current-calculations/{id}/edit-current-calculations [put]
-
 func (h *Handler) EditCurrent(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -289,7 +286,6 @@ func (h *Handler) EditCurrent(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /current-calculations/{id}/delete-current-calculations [delete]
-
 func (h *Handler) DeleteCurrent(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	current_id, err := strconv.Atoi(idStr)
@@ -330,7 +326,6 @@ func (h *Handler) DeleteCurrent(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /current-calculations/{id}/finish [put]
-
 func (h *Handler) FinishCurrent(ctx *gin.Context) {
 
 	userID, err := getUserID(ctx)

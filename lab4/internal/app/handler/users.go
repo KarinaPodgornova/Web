@@ -30,7 +30,6 @@ import (
 // @Failure 400 {object} map[string]string "Ошибка валидации или входных данных"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Router /users/signup [post]
-
 func (h *Handler) CreateUser(ctx *gin.Context) {
 	var userJSON serializer.UserJSON
 	if err := ctx.BindJSON(&userJSON); err != nil {
@@ -63,7 +62,6 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 // @Failure 404 {object} map[string]string "Пользователь не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Router /users/signin [post]
-
 func (h *Handler) SignIn(ctx *gin.Context) {
 	var userJSON serializer.UserJSON
 	if err := ctx.BindJSON(&userJSON); err != nil {
@@ -149,9 +147,6 @@ func (h *Handler) GetInfo(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /users/{login}/me [put]
-
-
-
 func (h *Handler) EditInfo(ctx *gin.Context) {
 	userID, err := getUserID(ctx)
 	if err != nil {
@@ -204,7 +199,6 @@ func (h *Handler) EditInfo(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка при удалении токена"
 // @Security ApiKeyAuth
 // @Router /users/signout [post]
-
 func (h *Handler) SignOut(ctx *gin.Context) {
 	tokenString := extractTokenFromHeader(ctx.Request)
 	if tokenString == "" {

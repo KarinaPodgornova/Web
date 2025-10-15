@@ -27,7 +27,38 @@ import (
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /current-devices/{current_id}/{device_id} [delete]
+func (h *Handler) DeleteDeviceFromCurrent(ctx *gin.Context) {
+	current_id, err := strconv.Atoi(ctx.Param("current_id"))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID заявки"))
+		return
+	}
 
+	device_id, err := strconv.Atoi(ctx.Param("device_id"))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID устройства"))
+		return
+	}
+
+	// Удаляем устройство из заявки
+	err = h.Repository.DeleteDeviceFromCurrent(current_id, device_id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			h.errorHandler(ctx, http.StatusNotFound, err)
+		} else if errors.Is(err, repository.ErrNotAllowed) {
+			h.errorHandler(ctx, http.StatusForbidden, err)
+		} else {
+			h.errorHandler(ctx, http.StatusInternalServerError, err)
+		}
+		return
+	}
+
+	// Возвращаем только статус успеха
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Устройство удалено из заявки",
+	})
+}
 
 // calculateAmperage - функция расчета силы тока для устройства в заявке
 // calculateAmperage - ПРАВИЛЬНАЯ функция расчета силы тока по формуле
@@ -71,38 +102,7 @@ func (h *Handler) calculateAmperage(device ds.Device, current ds.Current, amount
 	return amperagePerDevice * float64(amount)
 }
 
-func (h *Handler) DeleteDeviceFromCurrent(ctx *gin.Context) {
-	current_id, err := strconv.Atoi(ctx.Param("current_id"))
-	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID заявки"))
-		return
-	}
 
-	device_id, err := strconv.Atoi(ctx.Param("device_id"))
-	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID устройства"))
-		return
-	}
-
-	// Удаляем устройство из заявки
-	err = h.Repository.DeleteDeviceFromCurrent(current_id, device_id)
-	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			h.errorHandler(ctx, http.StatusNotFound, err)
-		} else if errors.Is(err, repository.ErrNotAllowed) {
-			h.errorHandler(ctx, http.StatusForbidden, err)
-		} else {
-			h.errorHandler(ctx, http.StatusInternalServerError, err)
-		}
-		return
-	}
-
-	// Возвращаем только статус успеха
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "Устройство удалено из заявки",
-	})
-}
 
 // EditDeviceFromCurrent godoc
 // @Summary Изменить данные устройства в заявке
@@ -119,7 +119,6 @@ func (h *Handler) DeleteDeviceFromCurrent(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router  /current-devices/{current_id}/{device_id} [put]
-
 func (h *Handler) EditDeviceFromCurrent(ctx *gin.Context) {
 	// Берем параметры из URL
 	current_id, err := strconv.Atoi(ctx.Param("current_id"))

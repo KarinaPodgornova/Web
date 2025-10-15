@@ -17,11 +17,10 @@ import (
 // @Description Возвращает все устройства или фильтрует по названию
 // @Tags devices
 // @Produce json
-// @Param device_title query string false "Название устройства для поиска"
+// @Param device_name query string false "Название устройства для поиска"
 // @Success 200 {array} serializer.DeviceJSON "Список устройств"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Router /devices [get]
-
 func (h *Handler) GetDevices(ctx *gin.Context) {
 	var devices []ds.Device
 	var err error
@@ -58,7 +57,6 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 // @Failure 404 {object} map[string]string "Устройство не найдено"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Router /devices/{id} [get]
-
 func (h *Handler) GetDevice(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -92,7 +90,6 @@ func (h *Handler) GetDevice(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /devices/create-device [post]
-
 func (h *Handler) CreateDevice(ctx *gin.Context) {
 	var deviceJSON serializer.DeviceJSON
 	if err := ctx.BindJSON(&deviceJSON); err != nil {
@@ -121,7 +118,6 @@ func (h *Handler) CreateDevice(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /devices/{id}/delete-device [delete]
-
 func (h *Handler) DeleteDevice(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -159,7 +155,6 @@ func (h *Handler) DeleteDevice(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /devices/{id}/edit-device [put]
-
 func (h *Handler) EditDevice(ctx *gin.Context) {
 	var deviceJSON serializer.DeviceJSON
 	if err := ctx.BindJSON(&deviceJSON); err != nil {
@@ -200,7 +195,6 @@ func (h *Handler) EditDevice(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
 // @Router /devices/{id}/add-to-current-calculation [post]
-
 func (h *Handler) AddToCurrent(ctx *gin.Context) {
 
 	userID, err := getUserID(ctx)
@@ -250,6 +244,20 @@ func (h *Handler) AddToCurrent(ctx *gin.Context) {
 	ctx.JSON(status, serializer.CurrentToJSON(current, creatorLogin, moderatorLogin))
 }
 
+// AddPhoto godoc
+// @Summary Загрузить изображение устройства
+// @Description Загружает изображение для устройства и возвращает обновленные данные
+// @Tags devices
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path int true "ID устройства"
+// @Param image formData file true "Изображение устройства"
+// @Success 200 {object} map[string]interface{} "Статус загрузки и данные устройства"
+// @Failure 400 {object} map[string]string "Неверный запрос или файл"
+// @Failure 404 {object} map[string]string "Устройство не найдено"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security ApiKeyAuth
+// @Router /devices/{id}/image [post]
 func (h *Handler) AddPhoto(ctx *gin.Context) {
 	device_id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -262,21 +270,6 @@ func (h *Handler) AddPhoto(ctx *gin.Context) {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
-
-	// AddPhoto godoc
-	// @Summary Загрузить изображение устройства
-	// @Description Загружает изображение для устройства и возвращает обновленные данные
-	// @Tags devices
-	// @Accept multipart/form-data
-	// @Produce json
-	// @Param id path int true "ID устройства"
-	// @Param image formData file true "Изображение устройства"
-	// @Success 200 {object} map[string]interface{} "Статус загрузки и данные устройства"
-	// @Failure 400 {object} map[string]string "Неверный запрос или файл"
-	// @Failure 404 {object} map[string]string "Устройство не найдено"
-	// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
-	// @Security ApiKeyAuth
-	// @Router /devices/{id}/image [post]
 
 	device, err := h.Repository.AddPhoto(ctx, device_id, file)
 	if err != nil {

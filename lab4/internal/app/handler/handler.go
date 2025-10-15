@@ -27,7 +27,7 @@ func NewHandler(r *repository.Repository) *Handler {
 // @version 1.0
 // @description API для управления расчётами нагрузки
 // @contact.name API Support
-// @contact.url http://localhost:8080
+// @contact.url http://localhost
 // @contact.email support@current.com
 // @license.name MIT
 // @host localhost
@@ -35,7 +35,6 @@ func NewHandler(r *repository.Repository) *Handler {
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
-
 func (h *Handler) RegisterHandler(router *gin.Engine) {
 	//Devices
 	api := router.Group("/api/v1")
