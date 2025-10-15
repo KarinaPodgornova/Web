@@ -1,0 +1,77 @@
+basePath: /api/v1
+definitions:
+  serializer.UserJSON:
+    properties:
+      id:
+        type: string
+      is_moderator:
+        type: boolean
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost
+info:
+  contact:
+    email: support@current.com
+    name: API Support
+    url: http://localhost
+  description: API для определения необходимой силы тока
+  license:
+    name: MIT
+  title: Current API
+  version: "1.0"
+paths:
+  /users/{login}/me:
+    get:
+      description: Возвращает данные профиля (доступен только тот, чей UUID совпадает
+        с user_id в токене).
+      parameters:
+      - description: Логин пользователя
+        in: path
+        name: login
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Профиль пользователя
+          schema:
+            $ref: '#/definitions/serializer.UserJSON'
+        "400":
+          description: Проблема с авторизацией/получением user_id"}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Пользователи не совпадают
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получить профиль пользователя
+      tags:
+      - users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
