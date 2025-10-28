@@ -63,8 +63,8 @@ services:
     container_name: minio_car_lab3
     image: minio/minio:latest
     ports:
-      - "9006:9000"
-      - "9007:9001"
+      - "9002:9000"
+      - "9003:9001"
     environment:
       MINIO_ACCESS_KEY: car_user
       MINIO_SECRET_KEY: car_password
@@ -80,8 +80,8 @@ services:
     container_name: redis_car_lab3
     restart: always
     ports:
-      - '6382:6379'
-    command: redis-server --save 20 1 --loglevel warning --requirepass car_password
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
     volumes:
       - redis-data-lab3:/data
     networks:
@@ -91,7 +91,7 @@ services:
     image: adminer:latest 
     container_name: adminer_car_lab3
     ports:
-      - "8082:8080"
+      - "8081:8080"
     environment:
       ADMINER_DEFAULT_SERVER: postgres_car_lab3
     depends_on:

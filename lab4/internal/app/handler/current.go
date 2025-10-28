@@ -19,8 +19,8 @@ import (
 // @Description Возвращает заявки с возможностью фильтрации по датам и статусу
 // @Tags Currents
 // @Produce json
-// @Param from-date query string false "Начальная дата (YYYY-MM-DD)"
-// @Param to-date query string false "Конечная дата (YYYY-MM-DD)"
+// @Param from query string false "Начальная дата (YYYY-MM-DD)"
+// @Param to query string false "Конечная дата (YYYY-MM-DD)"
 // @Param status query string false "Статус заявки"
 // @Success 200 {array} serializer.CurrentJSON "Список заявок"
 // @Failure 400 {object} map[string]string "Неверный формат даты"
@@ -294,7 +294,7 @@ func (h *Handler) DeleteCurrent(ctx *gin.Context) {
 		return
 	}
 
-	status := "deleted"
+	status := "rejected"
 
 	_, err = h.Repository.FormCurrent(current_id, status)
 	if err != nil {
@@ -308,7 +308,7 @@ func (h *Handler) DeleteCurrent(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Current deleted"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Current rejected"})
 }
 
 // FinishCurrent godoc
@@ -378,6 +378,15 @@ func (h *Handler) FinishCurrent(ctx *gin.Context) {
 	currentDevices, err := h.Repository.GetDevicesCurrents(id)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+
+	if statusJSON.Status == "rejected" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "Заявка отклонена",
+			"status": "rejected",
+		})
 		return
 	}
 

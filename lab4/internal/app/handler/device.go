@@ -51,7 +51,7 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 // @Description Возвращает информацию об устройстве по её идентификатору
 // @Tags devices
 // @Produce json
-// @Param id path int true "ID устройства"
+// @Param device_id path int true "ID устройства"
 // @Success 200 {object} serializer.DeviceJSON "Данные устройства"
 // @Failure 400 {object} map[string]string "Неверный ID"
 // @Failure 404 {object} map[string]string "Устройство не найдено"
@@ -137,7 +137,7 @@ func (h *Handler) DeleteDevice(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "deleted",
+		"status": "rejected",
 	})
 }
 

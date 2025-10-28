@@ -122,7 +122,7 @@ func (r *Repository) GetCurrentCount(creator_ID uuid.UUID) int64 {
 }
 
 func (r *Repository) DeleteCalculation(current_id int) error {
-	return r.db.Exec("UPDATE currents SET status = 'deleted' WHERE id = ?", current_id).Error
+	return r.db.Exec("UPDATE currents SET status = 'rejected' WHERE current_id = ?", current_id).Error
 }
 
 func (r *Repository) GetSingleCurrent(id int) (ds.Current, error) {
@@ -138,7 +138,7 @@ func (r *Repository) GetSingleCurrent(id int) (ds.Current, error) {
 			return ds.Current{}, fmt.Errorf("%w: заявка с id %d", ErrNotFound, id)
 		}
 		return ds.Current{}, err
-	} else if current.Status == "deleted" {
+	} else if current.Status == "rejected" {
 		return ds.Current{}, fmt.Errorf("%w: заявка удалена", ErrNotAllowed)
 	}
 	return current, nil
@@ -194,7 +194,7 @@ func (r *Repository) EditCurrent(id int, currentJSON serializer.CurrentJSON) (ds
 		return ds.Current{}, errors.New("неправильное напряжение бортовой сети")
 	}
 	
-	err := r.db.Where("current_id = ? and status != 'deleted'", id).First(&current).Error
+	err := r.db.Where("current_id = ? and status != 'rejected'", id).First(&current).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ds.Current{}, fmt.Errorf("%w: заявка с id %d", ErrNotFound, id)

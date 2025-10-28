@@ -25,7 +25,7 @@ func NewHandler(r *repository.Repository) *Handler {
 // RegisterHandler godoc
 // @title Amperage Calculation API
 // @version 1.0
-// @description API для управления расчётами нагрузки
+// @description API для управления расчётами силы тока
 // @contact.name API Support
 // @contact.url http://localhost
 // @contact.email support@current.com
