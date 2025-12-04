@@ -1,18 +1,15 @@
 package repository
 
 import (
-	
 	"errors"
-	"os"
-	"time"
 	"lab4/internal/app/ds"
 	"lab4/internal/app/serializer"
+	"os"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
-	
 )
-
 
 func (r *Repository) GetUserByID(id uuid.UUID) (ds.Users, error) {
 	user := ds.Users{}
@@ -23,11 +20,10 @@ func (r *Repository) GetUserByID(id uuid.UUID) (ds.Users, error) {
 	if sub.RowsAffected == 0 {
 		return ds.Users{}, ErrNotFound
 	}
-	
-	
+
 	err := sub.First(&user).Error
 	if err != nil {
-		
+
 		return ds.Users{}, err
 	}
 	return user, nil
@@ -39,22 +35,21 @@ func (r *Repository) GetUserByLogin(login string) (ds.Users, error) {
 	if sub.Error != nil {
 		return ds.Users{}, sub.Error
 	}
-	
+
 	if sub.RowsAffected == 0 {
 		return ds.Users{}, ErrNotFound
 	}
 	err := sub.First(&user).Error
 	if err != nil {
-		
+
 		return ds.Users{}, err
 	}
 	return user, nil
 }
 
-
 func (r *Repository) CreateUser(userJSON serializer.UserJSON) (ds.Users, error) {
 	user := serializer.UserFromJSON(userJSON)
-	
+
 	if user.Login == "" {
 		return ds.Users{}, errors.New("login is empty")
 	}
@@ -63,12 +58,10 @@ func (r *Repository) CreateUser(userJSON serializer.UserJSON) (ds.Users, error) 
 		return ds.Users{}, errors.New("password is empty")
 	}
 
-
 	if _, err := r.GetUserByLogin(user.Login); err == nil {
 		return ds.Users{}, errors.New("user already exists")
 	}
 
-	
 	user.User_ID = uuid.New()
 
 	sub := r.db.Create(&user)
@@ -83,6 +76,10 @@ func (r *Repository) SignIn(userJSON serializer.UserJSON) (string, error) {
 	user, err := r.GetUserByLogin(userJSON.Login)
 	if err != nil {
 		return "", err
+	}
+
+	if user.Password != userJSON.Password {
+		return "", errors.New("Неправильный пароль")
 	}
 
 	token, err := GenerateToken(user.User_ID, user.IsModerator)
@@ -128,7 +125,6 @@ func (r *Repository) EditInfo(login string, userJSON serializer.UserJSON) (ds.Us
 		userJSON.IsModerator = false
 	}
 	currUser.IsModerator = userJSON.IsModerator
-	
 
 	err = r.db.Save(&currUser).Error
 	if err != nil {

@@ -2,14 +2,14 @@ package handler
 
 import (
 	"errors"
-	"net/http"
 	"lab4/internal/app/repository"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger" 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Handler struct {
@@ -44,6 +44,11 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	unauthorized.POST("/users/signin", h.SignIn)
 	unauthorized.GET("/devices", h.GetDevices)
 	unauthorized.GET("/devices/:id", h.GetDevice)
+	//unauthorized.GET("/current-calculations/current-cart", h.GetCurrentCart)
+
+	optionalauthorized := api.Group("/")
+	optionalauthorized.Use(h.WithOptionalAuthCheck())
+	optionalauthorized.GET("/current-calculations/current-cart", h.GetCurrentCart)
 	//M:M
 	authorized := api.Group("/")
 	authorized.Use(h.ModeratorMiddleware(false))
@@ -53,12 +58,12 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	authorized.POST("/devices/:id/add-to-current-calculation", h.AddToCurrent)
 	authorized.POST("/devices/:id/image", h.AddPhoto)
 	// Users
-	authorized.GET("/current-calculations/current-cart", h.GetCurrentCart)
+
 	authorized.GET("current-calculations/current-calculations", h.GetAllCurrents)
 	authorized.GET("/current-calculations/:id", h.GetCurrent)
 	authorized.PUT("/current-calculations/:id/edit-current-calculations", h.EditCurrent)
 	authorized.PUT("/current-calculations/:id/form", h.FormCurrent)
-	authorized.PUT("/current-calculations/:id/finish", h.FinishCurrent)
+	//authorized.PUT("/current-calculations/:id/finish", h.FinishCurrent)
 	authorized.DELETE("/current-calculations/:id/delete-current-calculations", h.DeleteCurrent)
 
 	authorized.DELETE("/current-devices/:current_id/:device_id", h.DeleteDeviceFromCurrent)
@@ -70,7 +75,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 
 	moderator := api.Group("/")
 	moderator.Use(h.ModeratorMiddleware(true))
-	moderator.PUT("/current-calculation/:id/form", h.FormCurrent)
+	//moderator.PUT("/current-calculation/:id/form", h.FormCurrent)
+	moderator.PUT("/current-calculations/:id/finish", h.FinishCurrent)
 
 	swaggerURL := ginSwagger.URL("/swagger/doc.json")
 	router.Any("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, swaggerURL))
@@ -84,7 +90,6 @@ func (h *Handler) RegisterStatic(router *gin.Engine) {
 	router.Static("/styles", "./resources/styles")
 	router.Static("/img", "./resources/img")
 
-	
 }
 
 func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {

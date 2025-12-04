@@ -26,7 +26,7 @@ import (
 // @Failure 400 {object} map[string]string "Неверный формат даты"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security ApiKeyAuth
-// @Router /current-calculations/current-calculations [get]	
+// @Router /current-calculations/current-calculations [get]
 func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 	fromDate := ctx.Query("from")
 	var from = time.Time{}
@@ -72,7 +72,7 @@ func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 		resp = append(resp, serializer.CurrentToJSON(c, creatorLogin, moderatorLogin))
 	}
 	ctx.JSON(http.StatusOK, resp)
-	
+
 }
 
 // GetCurrentCart godoc
@@ -86,10 +86,13 @@ func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /current-calculations/current-cart [get]
 func (h *Handler) GetCurrentCart(ctx *gin.Context) {
-	
+
 	userID, err := getUserID(ctx)
 	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+		ctx.JSON(http.StatusOK, gin.H{
+			"id":            -1,
+			"devices_count": 0,
+		})
 		return
 	}
 
@@ -97,8 +100,8 @@ func (h *Handler) GetCurrentCart(ctx *gin.Context) {
 
 	if devices_count == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
-			"status":        "no_draft",
-			"devices_count": devices_count,
+			"id": -1,
+			"devices_count": 0,
 		})
 		return
 	}
@@ -109,7 +112,7 @@ func (h *Handler) GetCurrentCart(ctx *gin.Context) {
 			h.errorHandler(ctx, http.StatusUnauthorized, err)
 		} else if errors.Is(err, repository.ErrNoDraft) {
 			ctx.JSON(http.StatusOK, gin.H{
-				"status":        "no_draft",
+				"id": -1,
 				"devices_count": 0,
 			})
 		} else {
@@ -381,11 +384,10 @@ func (h *Handler) FinishCurrent(ctx *gin.Context) {
 		return
 	}
 
-
 	if statusJSON.Status == "rejected" {
 		ctx.JSON(http.StatusOK, gin.H{
 			"message": "Заявка отклонена",
-			"status": "rejected",
+			"status":  "rejected",
 		})
 		return
 	}

@@ -5,9 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	minioClient "lab4/internal/app/minioClient"
 	"os"
 	"time"
-	minioClient "lab4/internal/app/minioClient"
 
 	"github.com/go-redis/redis"
 
@@ -26,7 +27,7 @@ var (
 
 type Repository struct {
 	db *gorm.DB
-	mc     *minio.Client
+	mc *minio.Client
 	rd *redis.Client
 }
 
@@ -42,10 +43,15 @@ func NewRepository(dsn string) (*Repository, error) {
 	}
 
 	redis_client := redis.NewClient(&redis.Options{
-		Addr: os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT"),
+		Addr:     os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT"),
 		Password: "",
-		DB: 0,
+		DB:       0,
 	})
+
+	_, err = redis_client.Ping().Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to Redis: %v", err)
+	}
 
 	return &Repository{
 		db: db,
@@ -66,7 +72,6 @@ func blacklistKeyForToken(tokenString string) string {
 	h := sha256.Sum256([]byte(tokenString))
 	return "blacklist:" + hex.EncodeToString(h[:])
 }
-
 
 func (r *Repository) AddTokenToBlacklist(ctx context.Context, tokenString string, ttl time.Duration) error {
 	if ttl <= 0 {
