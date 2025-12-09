@@ -45,6 +45,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	unauthorized.GET("/devices", h.GetDevices)
 	unauthorized.GET("/devices/:id", h.GetDevice)
 	//unauthorized.GET("/current-calculations/current-cart", h.GetCurrentCart)
+	unauthorized.PUT("/current-calculations/:id/device_amperage", h.UpdateDeviceAmperage)
 
 	optionalauthorized := api.Group("/")
 	optionalauthorized.Use(h.WithOptionalAuthCheck())

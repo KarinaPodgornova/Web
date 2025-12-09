@@ -1,16 +1,20 @@
 package repository
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"lab4/internal/app/ds"
 	"lab4/internal/app/serializer"
-	"time"
 	"math"
+	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"github.com/google/uuid"
 )
 
 //var errNoDraft = errors.New("no draft for this user")
@@ -287,12 +291,52 @@ func (r *Repository) RecalculateCurrentAmperage(currentID uint) error {
 }
 
 
+
+
+
+
+// CalculateDeviceCurrentAsync - асинхронный вызов внешнего сервиса
+func (r *Repository) calculateSingleDeviceCurrentAsync(currentId int, device *ds.Device, currentDevice ds.CurrentDevices) {
+    // ЗАМЕНИТЕ URL НА АДРЕС ВАШЕГО АСИНХРОННОГО СЕРВИСА
+    asyncServiceURL := "http://localhost:8001/api/v1/calculate-current/"
+    
+    requestData := map[string]interface{}{
+        "current_id": currentId,
+        "device_id":   device.Device_ID,
+        "power_nominal": device.PowerNominal,
+        "resistance": device.Resistance,
+        "voltage_nominal": device.VoltageNominal,
+        "coeff_reserve": device.CoeffReserve,
+        "coeff_efficiency": device.CoeffEfficiency,
+        "amount": currentDevice.Amount,
+    }
+
+    jsonData, err := json.Marshal(requestData)
+    if err != nil {
+        logrus.Errorf("Ошибка при сериализации данных запроса для устройства %d: %v", device.Device_ID, err)
+        return
+    }
+
+    resp, err := http.Post(asyncServiceURL, "application/json", bytes.NewBuffer(jsonData))
+    if err != nil {
+        logrus.Errorf("Ошибка отправки запроса в асинхронный сервис для устройства %d: %v", device.Device_ID, err)
+        return
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != 202 { // 202 Accepted - стандартный код для асинхронной обработки
+        logrus.Errorf("Асинхронный сервис вернул статус %d для устройства %d", resp.StatusCode, device.Device_ID)
+        return
+    }
+
+    logrus.Infof("Успешно отправлен запрос в асинхронный сервис для расчёта %d, устройство %d", currentId, device.Device_ID)
+}
+
+// FinishCurrent - обновляем для асинхронного расчета
 func (r *Repository) FinishCurrent(id int, status string, currentUserID uuid.UUID) (ds.Current, error) {
 	if status != "completed" && status != "rejected" {
 		return ds.Current{}, errors.New("неверный статус")
 	}
-
-
 
 	current, err := r.GetSingleCurrent(id)
 	if err != nil {
@@ -301,8 +345,6 @@ func (r *Repository) FinishCurrent(id int, status string, currentUserID uuid.UUI
 		return ds.Current{}, fmt.Errorf("этот расчёт не может быть %s", status)
 	}
 
-	// Обновляем через map чтобы избежать проблем с типами
-	
 	updates := map[string]interface{}{
         "status": status,
         "finish_date": sql.NullTime{
@@ -310,7 +352,7 @@ func (r *Repository) FinishCurrent(id int, status string, currentUserID uuid.UUI
             Valid: true,
         },
         "moderator_id": uuid.NullUUID{
-            UUID:  currentUserID,  // Теперь используем переданный currentUserID
+            UUID:  currentUserID,
             Valid: true,
         },
     }
@@ -320,17 +362,62 @@ func (r *Repository) FinishCurrent(id int, status string, currentUserID uuid.UUI
 		return ds.Current{}, err
 	}
 
-	// Если заявка завершена, пересчитываем силу тока
+	// ЕСЛИ ЗАЯВКА ЗАВЕРШЕНА - ЗАПУСКАЕМ АСИНХРОННЫЙ РАСЧЕТ
 	if status == "completed" {
-		err = r.RecalculateCurrentAmperage(current.Current_ID)
+		currentDevices, err := r.GetDevicesCurrents(int(current.Current_ID))
 		if err != nil {
 			return ds.Current{}, err
 		}
+		
+		for _, currentDevice := range currentDevices {
+			device, err := r.GetDevice(int(currentDevice.Device_ID))
+			if err != nil {
+				logrus.Errorf("Ошибка получения устройства %d: %v", currentDevice.Device_ID, err)
+				continue
+			}
+			
+			// ЗАПУСКАЕМ АСИНХРОННЫЙ РАСЧЕТ В ОТДЕЛЬНОЙ ГОРУТИНЕ
+			go r.calculateSingleDeviceCurrentAsync(int(current.Current_ID), device, currentDevice)
+		}
+		
+		logrus.Infof("Начато асинхронное вычисление силы тока для расчёта %d, устройств: %d", 
+			int(current.Current_ID), len(currentDevices))
 	}
 	
 	return current, nil
 }
 
+// UpdateDeviceAmperage - обновляет силу тока устройства (вызывается асинхронным сервисом)
+func (r *Repository) UpdateDeviceAmperage(currentId int, deviceId int, amperage float64) error {
+    var CurrentDevice ds.CurrentDevices
+    err := r.db.Where("current_id = ? AND device_id = ?", currentId, deviceId).First(&CurrentDevice).Error
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return fmt.Errorf("%w: связь устройства с расчётом не найдена", ErrNotFound)
+        }
+        return err
+    }
+
+    err = r.db.Model(&CurrentDevice).Update("amperage", amperage).Error
+    if err != nil {
+        return err
+    }
+
+    logrus.Printf("Обновлена сила тока: current=%d, device=%d, amperage=%.2f", currentId, deviceId, amperage)
+    return nil
+}
+
+// GetCalculatedDevicesCount - возвращает количество устройств с рассчитанной силой тока
+func (r *Repository) GetCalculatedDevicesCount(currentId int) (int, error) {
+    var count int64
+    err := r.db.Model(&ds.CurrentDevices{}).
+        Where("current_id = ? AND amperage IS NOT NULL AND amperage > 0", currentId).
+        Count(&count).Error
+    if err != nil {
+        return 0, err
+    }
+    return int(count), nil
+}
 
 // DB возвращает *gorm.DB для прямого доступа к БД
 func (r *Repository) DB() *gorm.DB {
