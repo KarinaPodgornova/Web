@@ -45,6 +45,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	unauthorized.GET("/devices", h.GetDevices)
 	unauthorized.GET("/devices/:id", h.GetDevice)
 	//unauthorized.GET("/current-calculations/current-cart", h.GetCurrentCart)
+	//unauthorized.PUT("/current-calculations/:id/device_amperage", h.UpdateDeviceAmperage)
+	//unauthorized.PUT("/current-calculations/:id/total_amperage", h.UpdateCurrentTotalAmperage)
 	unauthorized.PUT("/current-calculations/:id/device_amperage", h.UpdateDeviceAmperage)
 
 	optionalauthorized := api.Group("/")
@@ -69,6 +71,9 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 
 	authorized.DELETE("/current-devices/:current_id/:device_id", h.DeleteDeviceFromCurrent)
 	authorized.PUT("/current-devices/:current_id/:device_id", h.EditDeviceFromCurrent)
+
+
+	
 
 	authorized.GET("/users/:login/me", h.GetInfo)
 	authorized.PUT("/users/:login/me", h.EditInfo)

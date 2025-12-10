@@ -39,6 +39,7 @@ func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 		}
 		from = from1
 	}
+	fmt.Println(fromDate)
 
 	toDate := ctx.Query("to")
 	if toDate != "" {
@@ -61,7 +62,7 @@ func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 
 	currents = h.filterAuthorizedCurrents(currents, ctx)
 	
-	// ДОБАВЛЯЕМ НОВУЮ СТРУКТУРУ С СТАТИСТИКОЙ
+	// ДОБАВЛЯЕМ СТАТИСТИКУ ПО РАСЧЕТАМ
 	type CurrentWithStats struct{
 		serializer.CurrentJSON
 		TotalDevices int `json:"total_devices"`
@@ -91,88 +92,6 @@ func (h *Handler) GetAllCurrents(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, resp)
 }
-
-// ДОБАВИМ НОВЫЙ ENDPOINT ДЛЯ АСИНХРОННОГО СЕРВИСА
-// UpdateDeviceAmperage godoc
-// @Summary Обновить силу тока устройства (для асинхронного сервиса)
-// @Description Принимает результаты расчета силы тока устройства от асинхронного сервиса
-// @Tags Currents
-// @Accept json
-// @Produce json
-// @Param id path int true "ID расчёта"
-// @Param data body map[string]interface{} true "Данные силы тока"
-// @Success 200 {object} map[string]string "Сила тока обновлена"
-// @Failure 400 {object} map[string]string "Неверные данные"
-// @Failure 403 {object} map[string]string "Доступ запрещен (неверный токен)"
-// @Failure 404 {object} map[string]string "Расчёт не найден"
-// @Router /current-calculations/{id}/device_amperage [put]
-func (h *Handler) UpdateDeviceAmperage(ctx *gin.Context) {
-    authHeader := ctx.GetHeader("Authorization")
-    // ЗАМЕНИТЕ "secret123" НА ВАШ СЕКРЕТНЫЙ КЛЮЧ
-    if authHeader != "secret123" {
-        ctx.JSON(http.StatusForbidden, gin.H{
-            "status": "error",
-            "description": "доступ запрещен",
-        })
-        return
-    }
-
-    idStr := ctx.Param("id")
-    currentId, err := strconv.Atoi(idStr)
-    if err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "status": "error", 
-            "description": "неверный ID расчёта",
-        })
-        return
-    }
-
-    var requestData map[string]interface{}
-    if err := ctx.BindJSON(&requestData); err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "status": "error",
-            "description": "неверный формат данных",
-        })
-        return
-    }
-
-    deviceId, hasDeviceId := requestData["device_id"].(float64)
-    deviceAmperage, hasAmperage := requestData["amperage"].(float64)
-
-    if !hasDeviceId || !hasAmperage {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "status": "error",
-            "description": "device_id и amperage обязательны",
-        })
-        return
-    }
-
-    err = h.Repository.UpdateDeviceAmperage(currentId, int(deviceId), deviceAmperage)
-    if err != nil {
-        if errors.Is(err, repository.ErrNotFound) {
-            ctx.JSON(http.StatusNotFound, gin.H{
-                "status": "error",
-                "description": "расчёт не найден",
-            })
-        } else {
-            ctx.JSON(http.StatusInternalServerError, gin.H{
-                "status": "error",
-                "description": "внутренняя ошибка сервера",
-            })
-        }
-        return
-    }
-
-    ctx.JSON(http.StatusOK, gin.H{
-        "message": "Сила тока устройства обновлена успешно",
-        "current_id": currentId,
-        "device_id": deviceId,
-        "amperage": deviceAmperage,
-    })
-}
-
-
-
 
 // GetCurrentCart godoc
 // @Summary Получить корзину расчёта
@@ -429,6 +348,7 @@ func (h *Handler) DeleteCurrent(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /current-calculations/{id}/finish [put]
 func (h *Handler) FinishCurrent(ctx *gin.Context) {
+
 	userID, err := getUserID(ctx)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
@@ -464,6 +384,7 @@ func (h *Handler) FinishCurrent(ctx *gin.Context) {
 	}
 
 	current, err := h.Repository.FinishCurrent(id, statusJSON.Status, userID)
+
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -475,18 +396,41 @@ func (h *Handler) FinishCurrent(ctx *gin.Context) {
 		return
 	}
 
-	// УБИРАЕМ СИНХРОННЫЙ РАСЧЕТ И ВОЗВРАЩАЕМ ТОЛЬКО ДАННЫЕ ЗАЯВКИ
+	currentDevices, err := h.Repository.GetDevicesCurrents(id)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	if statusJSON.Status == "rejected" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "Заявка отклонена",
+			"status":  "rejected",
+		})
+		return
+	}
+
+	//РАССЧИТЫВАЕМ ОБЩУЮ СИЛУ ТОКА
+	var totalAmperage float64
+	if statusJSON.Status == "completed" {
+		for _, device := range currentDevices {
+			totalAmperage += device.Amperage
+		}
+	}
+
 	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(current)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, serializer.CurrentToJSON(current, creatorLogin, moderatorLogin))
+	ctx.JSON(http.StatusOK, gin.H{
+		"current":               serializer.CurrentToJSON(current, creatorLogin, moderatorLogin),
+		"devices_with_amperage": serializer.CurrentDevicesArrayToJSON(currentDevices),
+		"total_amperage":        totalAmperage,
+	})
+
 }
-
-
-
 
 func (h *Handler) filterAuthorizedCurrents(currents []ds.Current, ctx *gin.Context) []ds.Current {
 	userID, err := getUserID(ctx)
@@ -534,3 +478,82 @@ func (h *Handler) hasAccessToCurrent(creatorID uuid.UUID, ctx *gin.Context) bool
 
 	return creatorID == userID || user.IsModerator
 }
+
+
+// UpdateDeviceAmperage godoc
+// @Summary Обновить силу тока устройства (для асинхронного сервиса)
+// @Description Принимает результаты расчета силы тока устройства от асинхронного сервиса
+// @Tags Currents
+// @Accept json
+// @Produce json
+// @Param id path int true "ID расчёта"
+// @Param data body map[string]interface{} true "Данные силы тока"
+// @Success 200 {object} map[string]string "Сила тока обновлена"
+// @Failure 400 {object} map[string]string "Неверные данные"
+// @Failure 403 {object} map[string]string "Доступ запрещен (неверный токен)"
+// @Failure 404 {object} map[string]string "Расчёт не найден"
+// @Router /current-calculations/{id}/device_amperage [put]
+func (h *Handler) UpdateDeviceAmperage(ctx *gin.Context) {
+    authHeader := ctx.GetHeader("Authorization")
+    if authHeader != "secret123" {
+        ctx.JSON(http.StatusForbidden, gin.H{
+            "status": "error",
+            "description": "доступ запрещен",
+        })
+        return
+    }
+
+    idStr := ctx.Param("id")
+    currentId, err := strconv.Atoi(idStr)
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "status": "error", 
+            "description": "неверный ID расчёта",
+        })
+        return
+    }
+
+    var requestData map[string]interface{}
+    if err := ctx.BindJSON(&requestData); err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "status": "error",
+            "description": "неверный формат данных",
+        })
+        return
+    }
+
+    deviceId, hasDeviceId := requestData["device_id"].(float64)
+    deviceAmperage, hasAmperage := requestData["amperage"].(float64)
+
+    if !hasDeviceId || !hasAmperage {
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "status": "error",
+            "description": "device_id и amperage обязательны",
+        })
+        return
+    }
+
+    err = h.Repository.UpdateDeviceAmperage(currentId, int(deviceId), deviceAmperage)
+    if err != nil {
+        if errors.Is(err, repository.ErrNotFound) {
+            ctx.JSON(http.StatusNotFound, gin.H{
+                "status": "error",
+                "description": "расчёт не найден",
+            })
+        } else {
+            ctx.JSON(http.StatusInternalServerError, gin.H{
+                "status": "error",
+                "description": "внутренняя ошибка сервера",
+            })
+        }
+        return
+    }
+
+    ctx.JSON(http.StatusOK, gin.H{
+        "message": "Сила тока устройства обновлена успешно",
+        "current_id": currentId,
+        "device_id": deviceId,
+        "amperage": deviceAmperage,
+    })
+}
+

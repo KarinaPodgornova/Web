@@ -15,6 +15,7 @@ type Current struct {
 	Forming_Date 			sql.NullTime 	`gorm:"default:null"`
 	Finish_Date  			sql.NullTime 	`gorm:"default:null"`
 	//Amperage     float64      `gorm:"type:numeric(3,1)"`
+	
 
 	//Amount     int     `json:"amount"`
 	VoltageBord     		float64 		`gorm:"type:decimal(10,2);default:11.5" json:"voltage_bord"`
@@ -22,4 +23,6 @@ type Current struct {
 
 	Creator   				Users 			`gorm:"foreignKey:Creator_ID"`
 	Moderator 				Users 			`gorm:"foreignKey:Moderator_ID"`
+
+	TotalAmperage  float64        `json:"total_amperage,omitempty"`
 }
