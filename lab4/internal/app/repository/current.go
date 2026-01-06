@@ -17,7 +17,8 @@ import (
 
 func (r *Repository) GetAllCurrents(from, to time.Time, status string) ([]ds.Current, error) {
 	var currents []ds.Current
-	sub := r.db.Where("status != 'deleted' and status != 'draft'")
+	// Исключаем только удаленные заявки, черновики оставляем (они будут отфильтрованы на фронтенде)
+	sub := r.db.Where("status != 'deleted'")
 	if !from.IsZero() {
 		sub = sub.Where("forming_date > ?", from)
 	}
@@ -354,4 +355,14 @@ func (r *Repository) UpdateDeviceAmperage(currentID, deviceID int, amperage floa
     return r.db.Model(&ds.CurrentDevices{}).
         Where("current_id = ? AND device_id = ?", currentID, deviceID).
         Update("amperage", amperage).Error
+}
+
+// UpdateDeviceAmperageAndAmount обновляет силу тока и количество для конкретного устройства в заявке
+func (r *Repository) UpdateDeviceAmperageAndAmount(currentID, deviceID int, amperage float64, amount int) error {
+    return r.db.Model(&ds.CurrentDevices{}).
+        Where("current_id = ? AND device_id = ?", currentID, deviceID).
+        Updates(map[string]interface{}{
+            "amperage": amperage,
+            "amount":   amount,
+        }).Error
 }

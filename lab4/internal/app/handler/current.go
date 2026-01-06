@@ -524,6 +524,7 @@ func (h *Handler) UpdateDeviceAmperage(ctx *gin.Context) {
 
     deviceId, hasDeviceId := requestData["device_id"].(float64)
     deviceAmperage, hasAmperage := requestData["amperage"].(float64)
+    deviceAmount, hasAmount := requestData["amount"].(float64)
 
     if !hasDeviceId || !hasAmperage {
         ctx.JSON(http.StatusBadRequest, gin.H{
@@ -533,7 +534,12 @@ func (h *Handler) UpdateDeviceAmperage(ctx *gin.Context) {
         return
     }
 
-    err = h.Repository.UpdateDeviceAmperage(currentId, int(deviceId), deviceAmperage)
+    // Если передан amount, обновляем и его тоже
+    if hasAmount {
+        err = h.Repository.UpdateDeviceAmperageAndAmount(currentId, int(deviceId), deviceAmperage, int(deviceAmount))
+    } else {
+        err = h.Repository.UpdateDeviceAmperage(currentId, int(deviceId), deviceAmperage)
+    }
     if err != nil {
         if errors.Is(err, repository.ErrNotFound) {
             ctx.JSON(http.StatusNotFound, gin.H{
